@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;前面的两篇文章，我们简单介绍了消息中间件与RabbitMQ的一些基本概念、基础用法以及常用的几个特性。但如果我们想更好的去结合我们的业务场景使用好RabbitMQ，我们还需要思考一些问题。比如:何时去创建队列,RabbitMQ的持久化，如何保证消息到达RabbitMQ，以及消费者如何确认消息……">
+<meta name="keywords" content="消息队列,RabbitMQ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RabbitMQ的使用思考篇">
+<meta property="og:url" content="http://blog.laoyu.site/2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;前面的两篇文章，我们简单介绍了消息中间件与RabbitMQ的一些基本概念、基础用法以及常用的几个特性。但如果我们想更好的去结合我们的业务场景使用好RabbitMQ，我们还需要思考一些问题。比如:何时去创建队列,RabbitMQ的持久化，如何保证消息到达RabbitMQ，以及消费者如何确认消息……">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-13/17508911.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-9-25/36944382.jpg">
+<meta property="og:updated_time" content="2021-03-14T03:04:50.718Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="RabbitMQ的使用思考篇">
+<meta name="twitter:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;前面的两篇文章，我们简单介绍了消息中间件与RabbitMQ的一些基本概念、基础用法以及常用的几个特性。但如果我们想更好的去结合我们的业务场景使用好RabbitMQ，我们还需要思考一些问题。比如:何时去创建队列,RabbitMQ的持久化，如何保证消息到达RabbitMQ，以及消费者如何确认消息……">
+<meta name="twitter:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-13/17508911.jpg">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>RabbitMQ的使用思考篇 | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+	   <div class="main-inner main-inner-aside">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">RabbitMQ的使用思考篇
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-13 09:07:41" itemprop="dateCreated datePublished" datetime="2018-11-13T09:07:41+08:00">2018-11-13</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 11:04:50" itemprop="dateModified" datetime="2021-03-14T11:04:50+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/消息队列/" itemprop="url" rel="index"><span itemprop="name">消息队列</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;前面的两篇文章，我们简单介绍了消息中间件与RabbitMQ的一些基本概念、基础用法以及常用的几个特性。但如果我们想更好的去结合我们的业务场景使用好RabbitMQ，我们还需要思考一些问题。比如:何时去创建队列,RabbitMQ的持久化，如何保证消息到达RabbitMQ，以及消费者如何确认消息……</p>
+<a id="more"></a>
+<h3 id="系列文章"><a href="#系列文章" class="headerlink" title="系列文章"></a>系列文章</h3><p><a href="http://blog.loading.ink/2018/11/11/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6%E2%80%94%E2%80%94RabbitMQ%E7%9A%84%E4%BD%BF%E7%94%A8%E5%9F%BA%E7%A1%80%E7%AF%87/" target="_blank" rel="noopener">分布式系统消息中间件——RabbitMQ的使用基础篇</a></p>
+<p><a href="http://blog.loading.ink/2018/11/12/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6%E2%80%94%E2%80%94RabbitMQ%E7%9A%84%E4%BD%BF%E7%94%A8%E8%BF%9B%E9%98%B6%E7%AF%87/" target="_blank" rel="noopener">分布式系统消息中间件——RabbitMQ的使用进阶篇</a></p>
+<p><a href="http://blog.loading.ink/2018/11/13/%E5%88%86%E5%B8%83%E5%BC%8F%E7%B3%BB%E7%BB%9F%E6%B6%88%E6%81%AF%E4%B8%AD%E9%97%B4%E4%BB%B6%E2%80%94%E2%80%94RabbitMQ%E7%9A%84%E4%BD%BF%E7%94%A8%E6%80%9D%E8%80%83%E7%AF%87/" target="_blank" rel="noopener">分布式系统消息中间件——RabbitMQ的使用思考篇</a></p>
+<h3 id="一、何时创建队列"><a href="#一、何时创建队列" class="headerlink" title="一、何时创建队列"></a>一、何时创建队列</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;从前面的文章我们知道，RabbitMQ可以选择在生产者创建队列，也可以在消费者端创建队列，也可以提前创建好队列，而生产者消费者直接使用即可。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;RabbitMQ的消息存储在队列中，交换器的使用并不真正耗费服务器的性能，而队列会。如在实际业务应用中，需要对所创建的队列的流量、内存占用及网卡占用有一个清晰的认知，预估其平均值和峰值，以便在固定硬件资源的情况下能够进行合理有效的分配。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;按照RabbitMQ官方建议，生产者和消费者都应该尝试创建(这里指声明操作)队列。这虽然是一个很好的建议，但是在我看来这个时间上没有最好的方案，只有最适合的方案。我们往往需要结合业务、资源等方面在各种方案里面选择一个最适合我们的方案。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;如果业务本身在架构设计之初己经充分地预估了队列的使用情况，完全可以在业务程序上线之前在服务器上创建好(比如通过页面管理、RabbitMQ命令或者更好的是从配置中心下发)，这样业务程序也可以免去声明的过程，直接使用即可。预先创建好资源还有一个好处是，可以确保交换器和队列之间正确地绑定匹配。很多时候，由于人为因素、代码缺陷等，发送消息的交换器并没有绑定任何队列，那么消息将会丢失:或者交换器绑定了某个队列，但是发送消息时的路由键无法与现存的队列匹配，那么消息也会丢失。当然可以配合mandatory参数或者备份交换器(关于mandatory参数的使用详细可参考我的上一篇文章) 来提高程序的健壮性。与此同时，预估好队列的使用情况非常重要，如果在后期运行过程中超过预定的阈值，可以根据实际情况对当前集群进行扩容或者将相应的队列迁移到其他集群。迁移的过程也可以对业务程序完全透明。此种方法也更有利于开发和运维分工，便于相应资源的管理。如果集群资源充足，而即将使用的队列所占用的资源又在可控的范围之内，为了增加业务程序的灵活性，也完全可以在业务程序中声明队列。至于是使用预先分配创建资源的静态方式还是动态的创建方式，需要从业务逻辑本身、公司运维体系和公司硬件资源等方面考虑。</p>
+<h3 id="二、持久化及策略"><a href="#二、持久化及策略" class="headerlink" title="二、持久化及策略"></a>二、持久化及策略</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;作为一个内存中间件，在保证了速度的情况下，不可避免存在如内存数据库同样的问题，即丢失问题。持久化可以提高RabbitMQ 的可靠性，以防在异常情况(重启、关闭、宕机等)下的数据丢失。RabbitMQ的持久化分为三个部分:交换器的持久化、队列的持久化和消息的持久化。</p>
+<ol>
+<li>交换器的持久化</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;交换器的持久化是通过在声明队列是将durable 参数置为true 实现的(该参数默认为false)。如果交换器不设置持久化，那么在RabbitMQ 服务重启之后，相关的交换器元数据会丢失，不过消息不会丢失，只是不能将消息发送到这个交换器中了。对一个长期使用的交换器来说，建议将其置为持久化的。</p>
+<ol>
+<li>队列的持久化</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;队列的持久化是通过在声明队列时将durable 参数置为true 实现的(该参数默认为false)，如果队列不设置持久化，那么在RabbitMQ 服务重启之后，相关队列的元数据会丢失，此时数据也会丢失。正所谓”皮之不存，毛将焉附”，队列都没有了，消息又能存在哪里呢?</p>
+<ol>
+<li>消息的持久化</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;队列的持久化能保证其本身的元数据不会因异常情况而丢失，但是并不能保证内部所存储的消息不会丢失。要确保消息不会丢失，需要将其设置为持久化。通过将消息的投递模式(BasicProperties中的DeliveryMode属性)设置为2即可实现消息的持久化。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;因此，消息如果要想在Rabbit重启、关闭、宕机时能够恢复，需要做到以下三点:</p>
+<ul>
+<li>把消息的投递模式设置为2</li>
+<li>发送到持久化的交换器</li>
+<li>到达持久化的队列</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<strong>注意:RabbitMQ 确保持久化消息能从服务器重启中恢复的方式是将它们写入磁盘上的一个持久化日志文件中。当发布一条持久化消息到持久化交换器时，Rabbit会在日志提交到日志文件后才发送响应(开启生产者确认机制)。之后，如果消息到了非持久化队列，它会自动从日志文件中删除，并且无法在服务器重启后恢复。因此单单只设置队列持久化，重启之后消息会丢失;单单只设置消息的持久化，重启之后队列消失，继而消息也丢失。单单设置消息持久化而不设置队列的持久化是毫无意义的。当从持久化队列中消费了消息后(并且确认后)，RabbitMQ会在持久化日志中把这条消息标记为等待垃圾收集。而在消费持久化消息之前，若RabbitMQ服务器重启，会自动重建交换器、队列以及绑定，重播持久化日志文件中的消息到合适的队列或者交换器上(取决于宕机时，消息处在路由的哪个环节)。</strong></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;为了保障消息不会丢失，也许我们可以简单粗暴的将所有的消息标记为持久化，但这样我们会付出性能的代价。写入磁盘的速度比写入内存的速度慢得不只一点点。对于可靠性不是那么高的消息可以不采用持久化处理以提高整体的吞吐量。在选择是否要将消息持久化时，需要在可靠性和吐吞量之间做一个权衡。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;将交换器、队列、消息都设置了持久化之后就能百分之百保证数据不丢失了吗?</p>
+<ul>
+<li>从消费者来说，如果在订阅消费队列时将noAck参数设置为true ，那么当消费者接收到相关消息之后，还没来得及处理就宕机了，这样也算数据丢失。</li>
+<li>在持久化的消息正确存入RabbitMQ 之后，还需要有一段时间(虽然很短，但是不可忽视〉才能存入磁盘之中。RabbitMQ 并不会为每条消息都进行同步存盘的处理，可能仅仅保存到操作系统缓存之中而不是物理磁盘之中。如果在这段时间内RabbitMQ 服务节点发生了岩机、重启等异常情况，消息保存还没来得及落盘，那么这些消息将会丢失。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;关于第一个问题，可以通过消费者确认机制来解决。而第二个问题可以通过生产者确认机制来解决，也可以使用镜像队列机制(镜像队列机制，将在运维篇总结)。生产者确认消费者确认请往下看。</p>
+<h3 id="三、生产者确认"><a href="#三、生产者确认" class="headerlink" title="三、生产者确认"></a>三、生产者确认</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;上文我们知道，在使用RabbitMQ的时候，可以通过消息持久化操作来解决因为服务器的异常崩溃而导致的消息丢失，除此之外，我们还会遇到一个问题，当消息的生产者将消息发送出去之后，消息到底有没有正确地到达服务器呢?如果不进行特殊配置，默认情况下发送消息的操作是不会返回任何信息给生产者的，也就是默认情况下生产者是不知道消息有没有正确地到达服务器。如果在消息到达服务器之前己经丢失，持久化操作也解决不了这个问题，因为消息根本没有到达服务器，何谈持久化?</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;RabbitMQ针对这个问题，提供了两种解决方式:</p>
+<ul>
+<li>通过事务机制实现:</li>
+<li>通过发送方确认(publisher confirm)机制实现。</li>
+</ul>
+<h4 id="3-1-RabbitMQ-事务机制"><a href="#3-1-RabbitMQ-事务机制" class="headerlink" title="3.1 RabbitMQ 事务机制"></a>3.1 RabbitMQ 事务机制</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;RabbitMQ 客户端中与事务机制相关的方法有三个:channel.TxSelect(用于将当前信道设置为事务模式);channel.TxCommit(用于提交事务)，channel.TxRollback(用于回滚事务)。在通过channel.TxSelect方法开启事务之后，我们便可以发布消息给RabbitMQ了，如果事务提交成功，则消息一定到达了RabbitMQ 中，如果在事务提交执行之前由于RabbitMQ异常崩溃或者其他原因抛出异常，这个时候我们便可以将其捕获，进而通过执行channel.TxRollback方法来实现事务回滚。示例代码如下所示:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">channel.TxSelect();//将信道设置为事务模式</span><br><span class="line">try</span><br><span class="line">&#123;</span><br><span class="line">    //do something</span><br><span class="line">    var message = Encoding.UTF8.GetBytes(&quot;TestMsg&quot;);</span><br><span class="line">    channel.BasicPublish(&quot;normalExchange&quot;, &quot;NormalRoutingKey&quot;, true, null, message);</span><br><span class="line">    //do something</span><br><span class="line">    channel.TxCommit();//提交事务</span><br><span class="line">&#125;</span><br><span class="line">catch (Exception ex)</span><br><span class="line">&#123;</span><br><span class="line">    //log(ex);</span><br><span class="line">    channel.TxRollback();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;事务确实能够解决消息发送方和RabbitMQ之间消息确认的问题，只有消息成功被RabbitMQ接收，事务才能提交成功，否则便可在捕获异常之后进行事务回滚，与此同时可以进行消息重发。但是使用事务同样会带来一些问题。</p>
+<ul>
+<li>会阻塞，发布者必须等待broker处理每个消息。</li>
+<li>事务是重量级的，每次提交都需要fsync()，需要耗费大量的时间</li>
+<li>事务非常耗性能，会降低RabbitMQ的消息吞吐量。</li>
+</ul>
+<h4 id="3-2-发送方确认机制"><a href="#3-2-发送方确认机制" class="headerlink" title="3.2 发送方确认机制"></a>3.2 发送方确认机制</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;前面介绍了RabbitMQ可能会遇到的一个问题，即消息发送方(生产者〉并不知道消息是否真正地到达了RabbitMQ。随后了解到在AMQP协议层面提供了事务机制来解决这个问题，但是采用事务机制实现会严重降低RabbitMQ的消息吞吐量，这里就引入了一种轻量级的方式一发送方确认(publisher confirm)机制。生产者将信道设置成confirm确认)模式，一旦信道进入confirm模式，所有在该信道上面发布的消息都会被指派一个唯一的ID( 从1开始)，一旦消息被投递到所有匹配的队列之后，RabbitMQ就会发送一个确认(BasicAck) 给生产者(包含消息的唯一ID)，这就使得生产者知晓消息已经正确到达了目的地了。如果消息和队列是可持久化的，那么确认消息会在消息写入磁盘之后发出。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-13/17508911.jpg" alt="RabbitMQ发送方确认机制"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;发送方确认模式，示例代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">//示例1--同步等待</span><br><span class="line">channel.ConfirmSelect();//开启确认模式</span><br><span class="line">var message = Encoding.UTF8.GetBytes(&quot;TestMsg&quot;);</span><br><span class="line">channel.ExchangeDeclare(&quot;normalExchange&quot;, &quot;direct&quot;, true, false, null);</span><br><span class="line">channel.QueueDeclare(&quot;normalQueue&quot;, true, false, false, null);</span><br><span class="line">channel.QueueBind(&quot;normalQueue&quot;, &quot;normalExchange&quot;, &quot;NormalRoutingKey&quot;);</span><br><span class="line">channel.BasicPublish(&quot;normalExchange&quot;, &quot;NormalRoutingKey&quot;, true, null, message);</span><br><span class="line">//var result=channel.WaitForConfirmsOrDie(Timeout); </span><br><span class="line">//WaitForConfirmsOrDie 使用WaitForConfirmsOrDie 在Rabbit发送Nack命令或超时时会抛出一个异常</span><br><span class="line">var result = channel.WaitForConfirms();//等待该信道所有未确认的消息结果</span><br><span class="line">if(!result)&#123;</span><br><span class="line">    //send message failed;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">//示例2--异步通知</span><br><span class="line">channel.ConfirmSelect();//开启确认模式</span><br><span class="line">var message = Encoding.UTF8.GetBytes(&quot;TestMsg&quot;);</span><br><span class="line">channel.ExchangeDeclare(&quot;normalExchange&quot;, &quot;direct&quot;, true, false, null);</span><br><span class="line">channel.QueueDeclare(&quot;normalQueue&quot;, true, false, false, null);</span><br><span class="line">channel.QueueBind(&quot;normalQueue&quot;, &quot;normalExchange&quot;, &quot;NormalRoutingKey&quot;);</span><br><span class="line">channel.BasicPublish(&quot;normalExchange&quot;, &quot;NormalRoutingKey&quot;, true, null, message);</span><br><span class="line">channel.BasicAcks += (model, ea) =&gt;</span><br><span class="line">&#123;</span><br><span class="line">    //消息被投递到所有匹配的队列之后，RabbitMQ就会发送一个确认(Basic.Ack)给生产者(包含消息的唯一ID)</span><br><span class="line">    //ea.Multiple为True代表 ea.DeliveryTag编号之前的消息均已被确认。</span><br><span class="line">//do something;</span><br><span class="line">&#125;;</span><br><span class="line">channel.BasicNacks += (model, ea) =&gt;</span><br><span class="line">&#123;</span><br><span class="line">    //如果RabbitMQ 因为自身内部错误导致消息丢失，就会发送一条nack(BasicNack) 命令</span><br><span class="line">//do something;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;关于生产者确认机制同样会有一些问题，broker不能保证消息会被confirm，只知道将会进行confirm。这样如果broker与生产者之间的连接断开，导致生产者不能收到确认消息，可能会重复进行发布。总之，生产者确认模式给客户端提供了一种较为轻量级的方式，能够跟踪哪些消息被broker处理，哪些可能因为broker宕掉或者网络失败的情况而重新发布。</p>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;注意:事务机制和publisher confirm机制两者是互斥的，不能共存。如果企图将已开启事务模式的信道再设置为publisher confmn模式， RabbitMQ会报错,或者如果企图将已开启publisher confirm模式的信道设置为事务模式， RabbitMQ也会报错。在性能上来看，而到底应该选择事务机制还是Confirm机制，则需要结合我们的业务场景。</strong></p>
+<h3 id="四、消费者确认"><a href="#四、消费者确认" class="headerlink" title="四、消费者确认"></a>四、消费者确认</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;为了保证消息从队列可靠地达到消费者，RabbitMQ提供了消息确认机制(message acknowledgement)。消费者在订阅队列时，可以指定noAck参数，当noAck等于false时，RabbitMQ会等待消费者显式地回复确认信号后才从内存(或者磁盘)中移去消息(实质上是先打上删除标记，之后再删除)。当noAck等于true时，RabbitMQ会自动把发送出去的消息置为确认，然后从内存(或者磁盘)中删除，而不管消费者是否真正地消费到了这些消息。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;采用消息确认机制后，只要设置noAck参数为false，消费者就有足够的时间处理消息(任务)，不用担心处理消息过程中消费者进程挂掉后消息丢失的问题，因为RabbitMQ会一直等待持有消息直到消费者显式调用BasicAck命令为止。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;当noAck参数置为false，对于RabbitMQ服务端而言，队列中的消息分成了两个部分:一部分是等待投递给消费者的消息:一部分是己经投递给消费者，但是还没有收到消费者确认信号的消息。如果RabbitMQ 一直没有收到消费者的确认信号，并且消费此消息的消费者己经断开连接，则RabbitMQ会安排该消息重新进入队列，等待投递给下一个消费者，当然也有可能还是原来的那个消费者。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;RabbitMQ不会为未确认的消息设置过期时间，它判断此消息是否需要重新投递给消费者的唯一依据是消费该消息的消费者连接是否己经断开，这么设计的原因是RabbitMQ 允许消费者消费一条消息的时间可以很久很久。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;关于RabbitMQ消费者确认机制示例代码如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">//推模式</span><br><span class="line">EventingBasicConsumer consumer = new EventingBasicConsumer(channel);</span><br><span class="line">//定义消费者回调事件</span><br><span class="line">consumer.Received += (model, ea) =&gt;</span><br><span class="line">&#123;</span><br><span class="line">    //do someting;</span><br><span class="line">    //channel.BasicReject(ea.DeliveryTag, requeue: true);//拒绝</span><br><span class="line">    //requeue参数为true会重新将这条消息存入队列，以便可以发送给下一个订阅的消费者</span><br><span class="line">    channel.BasicAck(ea.DeliveryTag, multiple: false);//确认</span><br><span class="line">    //若:multiple参数为true，则确认DeliverTag这个编号之前的消息</span><br><span class="line">&#125;;</span><br><span class="line">channel.BasicConsume(queue: &quot;queueName&quot;,</span><br><span class="line">                    noAck: false,</span><br><span class="line">                   consumer: consumer);</span><br><span class="line"></span><br><span class="line">//拉模式</span><br><span class="line">BasicGetResult result = channel.BasicGet(&quot;queueName&quot;, noAck: false);</span><br><span class="line">//确认</span><br><span class="line">channel.BasicAck(result.DeliveryTag, multiple: false);</span><br></pre></td></tr></table></figure>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-9-25/36944382.jpg" alt="RabbitMQ 消费者确认"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;如上，消费者在消费消息的同时，Rabbit会同步给予消费者一个DeliveryTag，这个DeliveryTag就像我们数据库中的主键，消费者在消费完毕后拿着这个DeliveryTag去Rabbit确认或拒绝这个消息。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">void BasicAck(ulong deliveryTag, bool multiple);</span><br><span class="line"></span><br><span class="line">void BasicReject(ulong deliveryTag, bool requeue);</span><br><span class="line"></span><br><span class="line">void BasicNack(ulong deliveryTag, bool multiple, bool requeue);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>deliveryTag:可以看作消息的编号，它是一个64位的长整型值，最大值是9223372036854775807。</li>
+<li>requeue:如果requeue 参数设置为true，则RabbitMQ会重新将这条消息存入队列，以便可以发送给下一个订阅的消费者;如果requeue 参数设置为false，则RabbitMQ立即会把消息从队列中移除，而不会把它发送给新的消费者。</li>
+<li>BasicReject命令一次只能拒绝一条消息，如果想要批量拒绝消息，则可以使用Basic.Nack这个命令。</li>
+<li>multiple:在BasicAck中，multiple 参数设置为true 则表示确认deliveryTag编号之前所有已被当前消费者确认的消息。在BasicNack中，multiple 参数设置为true 则表示拒绝deliveryTag 编号之前所有未被当前消费者确认的消息。</li>
+</ul>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;说明:将channel.BasicReject 或者channel.BasicNack中的requeue设置为false ，可以启用”死信队列”的功能。</strong>(关于死信队列请看我的上一篇文章 <a href="https://www.cnblogs.com/hunternet/p/9697754.html）。" target="_blank" rel="noopener">https://www.cnblogs.com/hunternet/p/9697754.html）。</a></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;上述requeue，都会将消息重新存入队列发送给下一个消费者(也有可能是其它消费者)。关于requeue还有下面一种用法。可以选择是否补发给当前的consumer。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">//补发消息 true退回到queue中 /false只补发给当前的consumer</span><br><span class="line">channel.BasicRecover(true);</span><br></pre></td></tr></table></figure>
+<p><strong>&nbsp;&nbsp;&nbsp;&nbsp;注意：RabbitMQ仅仅通过Consumer的连接中断来确认该Message并没有被正确处理。也就是说，RabbitMQ给了Consumer足够长的时间来做数据处理。如果忘记了ack，那么后果很严重。当Consumer退出时，Message会重新分发。然后RabbitMQ会占用越来越多的内存，由于RabbitMQ会长时间运行，这个“内存泄漏”是致命的。</strong></p>
+<h3 id="五、消息分发与顺序"><a href="#五、消息分发与顺序" class="headerlink" title="五、消息分发与顺序"></a>五、消息分发与顺序</h3><h4 id="5-1-消息分发"><a href="#5-1-消息分发" class="headerlink" title="5.1 消息分发"></a>5.1 消息分发</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;当RabbitMQ 队列拥有多个消费者时，队列收到的消息将以轮询(round-robin)的分发方式发送给消费者。每条消息只会发送给订阅列表里的一个消费者。这种方式非常适合扩展，而且它是专门为并发程序设计的。如果现在负载加重，那么只需要创建更多的消费者来消费处理消息即可。<br>&nbsp;&nbsp;&nbsp;&nbsp;很多时候轮询的分发机制也不是那么优雅。默认情况下，如果有n个消费者，那么RabbitMQ会将第m条消息分发给第m%n (取余的方式)个消费者， RabbitMQ 不管消费者是否消费并己经确认了消息。试想一下，如果某些消费者任务繁重，来不及消费那么多的消息，而某些其他消费者由于某些原因(比如业务逻辑简单、机器性能卓越等)很快地处理完了所分配到的消息，进而进程空闲，这样就会造成整体应用吞吐量的下降。那么该如何处理这种情况呢?这里就要用到channel.BasicQos(int prefetchCount)这个方法，channel.BasicQos方法允许限制信道上的消费者所能保持的最大未确认消息的数量。<br>&nbsp;&nbsp;&nbsp;&nbsp;举例说明，在订阅消费队列之前，消费端程序调用了channel.BasicQos(5)，之后订阅了某个队列进行消费。RabbitMQ 会保存一个消费者的列表，每发送一条消息都会为对应的消费者计数，如果达到了所设定的上限，那么RabbitMQ 就不会向这个消费者再发送任何消息。直到消费者确认了某条消息之后， RabbitMQ 将相应的计数减1，之后消费者可以继续接收消息，直到再次到达计数上限。</p>
+<p><strong>注意:Basic.Qos 的使用对于拉模式的消费方式无效.</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">void BasicQos(uint prefetchSize, ushort prefetchCount, bool global);</span><br></pre></td></tr></table></figure>
+<ul>
+<li>prefetchCount：允许限制信道上的消费者所能保持的最大未确认消息的数量，设置为0表示没有上限。</li>
+<li>prefetchSize：消费者所能接收未确认消息的总体大小的上限，单位为B，设置为0表示没有上限。</li>
+<li>global：对于一个信道来说，它可以同时消费多个队列，当设置了prefetchCount 大于0 时，这个信道需要和各个队列协调以确保发送的消息都没有超过所限定的prefetchCount 的值，这样会使RabbitMQ 的性能降低，尤其是这些队列分散在集群中的多个Broker节点之中。RabbitMQ 为了提升相关的性能，在AMQPO-9-1 协议之上重新定义了global这个参数。如下表所示:</li>
+</ul>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>global参数</th>
+<th>AMQP 0-9-1</th>
+<th>RabbitMQ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>false</td>
+<td>信道上所有的消费者都需要遵从prefetchCount 的限信道上新的消费者需要遵从prefetchCount 的限定值</td>
+<td>信道上新的消费者需要遵从prefetchCount 的限定值</td>
+</tr>
+<tr>
+<td>true</td>
+<td>当前通信链路( Connection) 上所有的消费者都需信道上所有的消费者都需要遵从prefetchCount的限定值</td>
+<td>信道上所有的消费者需要遵从prefetchCount 的限定值</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>注意:</strong></p>
+<ol>
+<li>对于同一个信道上的多个消费者而言，如果设置了prefetchCount 的值，那么都会生效。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//伪代码</span><br><span class="line">Consumer consumer1 = ...;</span><br><span class="line">Consumer consumer2 = ...;</span><br><span class="line">channel.BasicQos(10) ; </span><br><span class="line">channel.BasicConsume(&quot;my-queue1&quot; , false , consumer1);</span><br><span class="line">channel.BasicConsume(&quot;my-queue2&quot; , false , consumer2);</span><br><span class="line">//两个消费者各自的能接收到的未确认消息的上限都为10 。</span><br></pre></td></tr></table></figure>
+<ol>
+<li>如果在订阅消息之前，既设置了global 为true 的限制，又设置了global为false的限制,RabbitMQ 会确保两者都会生效。但会增加RabbitMQ的负载因为RabbitMQ 需要更多的资源来协调完成这些限制。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//伪代码</span><br><span class="line">Channel channel = ...;</span><br><span class="line">Consumer consumerl = ...;</span><br><span class="line">Consumer consumer2 = ...;</span><br><span class="line">channel.BasicQos(3 , false); </span><br><span class="line">channel.BasicQos(5 , true); </span><br><span class="line">channel.BasicConsume(&quot;queuel&quot; , false , consumerl) ;</span><br><span class="line">channel.BasicConsume(&quot;queue2&quot; , false , consumer2) ;</span><br><span class="line">//这里每个消费者最多只能收到3个未确认的消息，两个消费者能收到的未确认的消息个数之和的上限为5</span><br></pre></td></tr></table></figure>
+<h4 id="5-2-消息顺序"><a href="#5-2-消息顺序" class="headerlink" title="5.2 消息顺序"></a>5.2 消息顺序</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;消息的顺序性是指消费者消费到的消息和发送者发布的消息的顺序是一致的。举个例子，不考虑消息重复的情况，如果生产者发布的消息分别为msgl、msg2、msg3，那么消费者必然也是按照msgl、msg2、msg3的顺序进行消费的。<br>&nbsp;&nbsp;&nbsp;&nbsp;目前很多资料显示RabbitMQ的消息能够保障顺序性，这是不正确的，或者说这个观点有很大的局限性。在不使用任何RabbitMQ的高级特性，也没有消息丢失、网络故障之类异常的情况发生，并且只有一个消费者的情况下，最好也只有一个生产者的情况下可以保证消息的顺序性。如果有多个生产者同时发送消息，无法确定消息到达Broker 的前后顺序，也就无法验证消息的顺序性。<br>&nbsp;&nbsp;&nbsp;&nbsp;那么哪些情况下RabbitMQ 的消息顺序性会被打破呢?下面介绍几种常见的情形。</p>
+<ul>
+<li><p>如果生产者使用了事务机制，在发送消息之后遇到异常进行了事务回滚，那么需要重新补偿发送这条消息，如果补偿发送是在另一个线程实现的，那么消息在生产者这个源头就出现了错序。同样，如果启用publisher confirm时，在发生超时、中断，又或者是收到RabbitMQ的BasicNack命令时，那么同样需要补偿发送，结果与事务机制一样会错序。或者这种说法有些牵强，我们可以固执地认为消息的顺序性保障是从存入队列之后开始的，而不是在发迭的时候开始的。</p>
+</li>
+<li><p>考虑另一种情形，如果生产者发送的消息设置了不同的超时时间，井且也设置了死信队列，整体上来说相当于一个延迟队列，那么消费者在消费这个延迟队列的时候，消息的顺序必然不会和生产者发送消息的顺序一致。</p>
+</li>
+<li><p>如果消息设置了优先级，那么消费者消费到的消息也必然不是顺序性的。</p>
+</li>
+<li><p>如果一个队列按照前后顺序分有msg1， msg2、msg3、msg4这4 个消息，同时有ConsumerA和ConsumerB 这两个消费者同时订阅了这个队列。队列中的消息轮询分发到各个消费者之中，ConsumerA 中的消息为msg1和msg3，ConsumerB中的消息为msg2、msg4。ConsumerA收到消息msg1之后并不想处理而调用了BasicNack/BasicReject将消息拒绝，与此同时将requeue设置为true，这样这条消息就可以重新存入队列中。消息msg1之后被发送到了ConsumerB中，此时ConsumerB己经消费了msg2、msg4，之后再消费msg1.这样消息顺序性也就错乱了。</p>
+</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;包括但不仅限于以上几种情形会使RabbitMQ 消息错序。如果要保证消息的顺序性，需要业务方使用的时候做进一步的处理。如在消息体内添加全局有序标识等。</p>
+<h3 id="六、消息传输保障"><a href="#六、消息传输保障" class="headerlink" title="六、消息传输保障"></a>六、消息传输保障</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;消息可靠传输一般是业务系统接入消息中间件时首要考虑的问题，一般消息中间件的消息<br>传输保障分为三个层级。</p>
+<ul>
+<li>At most once: 最多一次。消息可能会丢失，但绝不会重复传输。</li>
+<li>At least once: 最少一次。消息绝不会丢失，但可能会重复传输。</li>
+<li>Exactly once: 恰好一次。每条消息肯定会被传输一次且仅传输一次。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;RabbitMQ 支持其中的”最多一次”和”最少一次”。其中”最少一次”投递实现需要考虑以下这个几个方面的内容:</p>
+<ol>
+<li>消息生产者需要开启事务机制或者publisher confirm 机制，以确保消息可以可靠地传<br>输到RabbitMQ 中。</li>
+<li>消息生产者需要配合使用mandatory参数或者备份交换器来确保消息能够从交换器<br>路由到队列中，进而能够保存下来而不会被丢弃。</li>
+<li>消息和队列都需要进行持久化处理，以确保RabbitMQ服务器在遇到异常情况时不会造成消息丢失。</li>
+<li>消费者在消费消息的同时需要将noAck设置为false，然后通过手动确认的方式去确认己经正确消费的消息，以避免在消费端引起不必要的消息丢失。</li>
+</ol>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;”最多一次”的方式就无须考虑以上那些方面，生产者随意发送，消费者随意消费，不过这样很难确保消息不会重复消费。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;”恰好一次”是RabbitMQ目前无法保障的(目前我也不知道哪个中间件能够保证)。消费者在消费完一条消息之后向RabbitMQ 发送确认BasicAck命令，此时由于网络断开或者其他原因造成RabbitMQ并没有收到这个确认命令，那么RabbitMQ不会将此条消息标记删除。在重新建立连接之后，消费者还是会消费到这一条消息，这就造成了重复消费。再考虑一种情况，生产者在使用publisher confirm机制的时候，发送完一条消息等待RabbitMQ 返回确认通知，此时网络断开，生产者捕获到异常情况，为了确保消息可靠性选择重新发送，这样RabbitMQ中就有两条同样的消息，在消费的时候，消费者就会重复消费。而解决重复消费可以通过消费者幂等等方式来解决。</p>
+<h3 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;本篇文章，我们思考了使用RabbitMQ过程中需要注意的几个问题，而前两篇文章对RabbitMQ的概念以及如何使用做了简单的介绍，相信经过这些介绍已经对RabbitMQ有了基本的了解。但这些远远不够，想要更好的利用好RabbitMQ还需要结合我们的业务场景来更多的去使用它(切记不要为了使用技术而使用技术!)。关于RabbitMQ的运维篇，会在以后的文章中继续给大家分享。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/" title="RabbitMQ的使用思考篇">2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/消息队列/" rel="tag"><i class="fa fa-tag"></i> 消息队列</a>
+          
+            <a href="/tags/RabbitMQ/" rel="tag"><i class="fa fa-tag"></i> RabbitMQ</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/技术实践/rabbitmq/RabbitMQ的使用进阶篇/" rel="next" title="RabbitMQ的使用进阶篇">
+                <i class="fa fa-chevron-left"></i> RabbitMQ的使用进阶篇
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/log/NET日志记录-log4net/" rel="prev" title=".NET日志记录-log4net">
+                .NET日志记录-log4net <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系列文章"><span class="nav-text">系列文章</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一、何时创建队列"><span class="nav-text">一、何时创建队列</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、持久化及策略"><span class="nav-text">二、持久化及策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、生产者确认"><span class="nav-text">三、生产者确认</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-RabbitMQ-事务机制"><span class="nav-text">3.1 RabbitMQ 事务机制</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-发送方确认机制"><span class="nav-text">3.2 发送方确认机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四、消费者确认"><span class="nav-text">四、消费者确认</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#五、消息分发与顺序"><span class="nav-text">五、消息分发与顺序</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#5-1-消息分发"><span class="nav-text">5.1 消息分发</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-2-消息顺序"><span class="nav-text">5.2 消息顺序</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#六、消息传输保障"><span class="nav-text">六、消息传输保障</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结束语"><span class="nav-text">结束语</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="1 为什么要关心可测试性很多公司很多人在实践单元测试中总觉的很困难的一个很重要的原因就是其代码本身不具有可测试性。他们往往会走入一个误区。面对一个几千行、逻辑混乱的方法而抓耳挠腮的想着用十八般武艺，各种框架去写这个方法的单元测试，而最终不得不以失败而告终，耗费了大量的时间却徒劳而无功。其实是他们忽略了这个方法的本身是不具有可测试性的。">
+<meta name="keywords" content="单元测试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何提高代码的可测试性">
+<meta property="og:url" content="http://blog.laoyu.site/2021/技术实践/单元测试/如何提高代码的可测试性/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="1 为什么要关心可测试性很多公司很多人在实践单元测试中总觉的很困难的一个很重要的原因就是其代码本身不具有可测试性。他们往往会走入一个误区。面对一个几千行、逻辑混乱的方法而抓耳挠腮的想着用十八般武艺，各种框架去写这个方法的单元测试，而最终不得不以失败而告终，耗费了大量的时间却徒劳而无功。其实是他们忽略了这个方法的本身是不具有可测试性的。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-03-21T08:32:36.091Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何提高代码的可测试性">
+<meta name="twitter:description" content="1 为什么要关心可测试性很多公司很多人在实践单元测试中总觉的很困难的一个很重要的原因就是其代码本身不具有可测试性。他们往往会走入一个误区。面对一个几千行、逻辑混乱的方法而抓耳挠腮的想着用十八般武艺，各种框架去写这个方法的单元测试，而最终不得不以失败而告终，耗费了大量的时间却徒劳而无功。其实是他们忽略了这个方法的本身是不具有可测试性的。">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2021/技术实践/单元测试/如何提高代码的可测试性/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>如何提高代码的可测试性 | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+      <div class="main-inner">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2021/技术实践/单元测试/如何提高代码的可测试性/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">如何提高代码的可测试性
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2021-01-06 11:29:26" itemprop="dateCreated datePublished" datetime="2021-01-06T11:29:26+08:00">2021-01-06</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-21 16:32:36" itemprop="dateModified" datetime="2021-03-21T16:32:36+08:00">2021-03-21</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/单元测试/" itemprop="url" rel="index"><span itemprop="name">单元测试</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/技术实践/单元测试/如何提高代码的可测试性/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2021/技术实践/单元测试/如何提高代码的可测试性/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="1-为什么要关心可测试性"><a href="#1-为什么要关心可测试性" class="headerlink" title="1 为什么要关心可测试性"></a>1 为什么要关心可测试性</h3><p>很多公司很多人在实践单元测试中总觉的很困难的一个很重要的原因就是其代码本身不具有可测试性。他们往往会走入一个误区。面对一个几千行、逻辑混乱的方法而抓耳挠腮的想着用十八般武艺，各种框架去写这个方法的单元测试，而最终不得不以失败而告终，耗费了大量的时间却徒劳而无功。其实是他们忽略了这个方法的本身是不具有可测试性的。<br><a id="more"></a><br>因此我们在要对一个方法进行单测之前，一定要先看一下它是不是具有可测试性，如果不具有，那么我们应该先对其进行重构以提高其可测试性。<br>在可测试的设计中,你应该很容易为代码的每一段逻辑(循环、i语句和 switchi等)快速编写一个单元测试,这些单元测试具有如下属性</p>
+<ul>
+<li>运行速度快</li>
+<li>相互隔离,即每个测试可以独立运行,或者作为一组测试的一部分运行,可以按任何顺</li>
+<li>不需要进行外部配置</li>
+<li>产生稳定的通过或失败结果。这些就是FCC属性:快速、隔离、无需配置和稳定(Fast, Isolated, Configuration-fre,andConsistent)。</li>
+</ul>
+<p>如果编写这样的测试很困难,或者需要很长时间,那这个系统就不是一个可测试的，如果把测试看做系统的一个用户,可测试性设计就成为一种思维方式。</p>
+<h3 id="2-可测试性设计技巧"><a href="#2-可测试性设计技巧" class="headerlink" title="2 可测试性设计技巧"></a>2 可测试性设计技巧</h3><p>如果你要测试的方法真的有几百行上千行，那么我建议先用重构一书中的方法去解决它。其次关于可测试性在实践过程中是有一些技巧的。<br>2.1 方法可重写<br>在Java中,方法默认就是虚拟方法，可重写的。而在NET中,如果想要替换一个方法的行为,你需要明确地把方法设置为虚拟方法,才能进行重写。因此我们可以在设计之初就尽量把方法用关键字virtual标记。</p>
+<h4 id="2-2-面向接口设计"><a href="#2-2-面向接口设计" class="headerlink" title="2.2 面向接口设计"></a>2.2 面向接口设计</h4><p>如果我们的代码都能够保持面向接口设计的原则，意味着我们的依赖都是很容易被替换的，可以让我们在测试中年很容易取创造真实对象的伪对象。</p>
+<h4 id="2-3-避免密封类"><a href="#2-3-避免密封类" class="headerlink" title="2.3 避免密封类"></a>2.3 避免密封类</h4><p>密封类就是将一个类封闭起来，断其子孙的一种方式。<br>密封方法则不是为了防止继承而是防止重写，而且它是为了重写基类的虚方法并提供具体的实现，同时防止其后继类（派生类）再次重写该虚方法<br>无论是我们的被测方法还是其依赖的方法属于一个密封类，那么意味着这个方法是不能被重写的，在测试中也就不能去替换它。因此应该尽量避免使用密封类</p>
+<h4 id="2-4-避免在方法内初始化对象"><a href="#2-4-避免在方法内初始化对象" class="headerlink" title="2.4 避免在方法内初始化对象"></a>2.4 避免在方法内初始化对象</h4><p>很多人在写代码的时候习惯于在一个方法内部初始化对象，如下面这样<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">GetName</span>(<span class="params"><span class="keyword">int</span> userId</span>)</span>&#123;</span><br><span class="line">    <span class="comment">//方法内部初始化类</span></span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">new</span> User(userId).GetName();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>这样的设计其实是违背了代码的低耦合原则的，也不具有可测试性，因此我们在开发中应该尽量避免在方法中初始化另一个对象。对于外部依赖的对象可以使用依赖注入的方式。</p>
+<h4 id="2-5-避免直接调用静态方法"><a href="#2-5-避免直接调用静态方法" class="headerlink" title="2.5 避免直接调用静态方法"></a>2.5 避免直接调用静态方法</h4><p>要在测试中替换一个静态方法的行为,是非常困难的。<br>要处理这种情况,我们可以使用抽取和重写的方法进行重构,把这个静态方法抽象出去。<br>一个更为极端的做法是:避免使用任何的静态方法。这样的话,每一段逻辑都是一个类实例的一部分,使得这段逻辑更容易替换。有些进行单元测试或者测试驱动开发的人不喜欢使用单例,原因之一就是单例缺少可替换性。单例是静态的公共共享资源,很难重写它们。<br>要完全避免使用静态方法可能会过于困难,但是你可以尝试在应用程序中尽量少使用单例或者静态方法,这样在测试时会变得容易一些。</p>
+<h4 id="2-6-避免在构造函数和静态构造函数中包含逻辑代码"><a href="#2-6-避免在构造函数和静态构造函数中包含逻辑代码" class="headerlink" title="2.6 避免在构造函数和静态构造函数中包含逻辑代码"></a>2.6 避免在构造函数和静态构造函数中包含逻辑代码</h4><p>无论是构造函数还是静态构造函数内的逻辑同样是我们无法在测试中重写控制它的，因此我们需要避免在构造函数和静态构造函数中包含逻辑代码。</p>
+<p>关于可测试性设计虽然是有着许多技巧，但如果你掌握了代码编写的内容心法”SOLID原则”，并且熟练应用于编码中，其实你的代码绝大多数都是具有良好的可测试性的。</p>
+<h3 id="3-可测试性设计的缺点"><a href="#3-可测试性设计的缺点" class="headerlink" title="3 可测试性设计的缺点"></a>3 可测试性设计的缺点</h3><p>可测试性固然可以更加方便的让我们对代码进行单元测试，但有些时候也会给我们带来一些“麻烦”。因此它也是一个颇有争议的话题。有些人认为可测试性是好的设计应该具有的特征之一。也有些认为可测试性会破坏原有的设计带来一些副作用。<br>那么可测试性设计会带来哪些“麻烦”呢</p>
+<h4 id="3-1-工作量"><a href="#3-1-工作量" class="headerlink" title="3.1 工作量"></a>3.1 工作量</h4><p>大多数情况下,设计时以可测试性为目标会增加工作量,因为比起不考虑可测试性的设计比起可测试性设计需要编写更多的代码。</p>
+<h4 id="3-2-复杂度"><a href="#3-2-复杂度" class="headerlink" title="3.2 复杂度"></a>3.2 复杂度</h4><p>可测试性设计有时会让人觉得,它把简单的事情过于复杂化了。有些接口的使用让你感觉很别扭或者设计公开了你未曾考虑过的类行为语义。而且,当使用了很多接口把东西进行抽象之后,如果你要浏览基础代码找到一个方法的真正实现代码,会更加困难和麻烦。</p>
+<h4 id="3-3-破坏更好的设计封装"><a href="#3-3-破坏更好的设计封装" class="headerlink" title="3.3 破坏更好的设计封装"></a>3.3 破坏更好的设计封装</h4><p>从一些可测试性的技巧我们可以知道有些时候为了让代码更具有可测试性，会破坏一些原有的设计原则。</p>
+<p>正如人月神话一书中所说，在软件开发这一行业中没有银弹。一门技术或者方法论在给我们提供了一些帮助的同时也会带来一些问题。这就<strong>需要我们在具体使用的过程中**</strong>case by case，根据可测试性设计所带来的优缺点找到一个平衡点！**</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2021/技术实践/单元测试/如何提高代码的可测试性/" title="如何提高代码的可测试性">2021/技术实践/单元测试/如何提高代码的可测试性/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/单元测试/" rel="tag"><i class="fa fa-tag"></i> 单元测试</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/技术实践/单元测试/伪对象、桩对象、模拟对象/" rel="next" title="伪对象、桩对象、模拟对象">
+                <i class="fa fa-chevron-left"></i> 伪对象、桩对象、模拟对象
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/技术实践/代码的艺术/恪尽职守，行分内之事——高质量代码/" rel="prev" title="恪尽职守，行分内之事——高质量代码">
+                恪尽职守，行分内之事——高质量代码 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-为什么要关心可测试性"><span class="nav-text">1 为什么要关心可测试性</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-可测试性设计技巧"><span class="nav-text">2 可测试性设计技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-面向接口设计"><span class="nav-text">2.2 面向接口设计</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-避免密封类"><span class="nav-text">2.3 避免密封类</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-避免在方法内初始化对象"><span class="nav-text">2.4 避免在方法内初始化对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-5-避免直接调用静态方法"><span class="nav-text">2.5 避免直接调用静态方法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-避免在构造函数和静态构造函数中包含逻辑代码"><span class="nav-text">2.6 避免在构造函数和静态构造函数中包含逻辑代码</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-可测试性设计的缺点"><span class="nav-text">3 可测试性设计的缺点</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-工作量"><span class="nav-text">3.1 工作量</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-复杂度"><span class="nav-text">3.2 复杂度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-破坏更好的设计封装"><span class="nav-text">3.3 破坏更好的设计封装</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>	
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

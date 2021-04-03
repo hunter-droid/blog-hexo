@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;上一篇文章简单介绍了Redis的对象系统。Redis使用对象来表示数据库中的键和值每个对象都由一个redisObject结构表示,该结构中和保存数据有关的三个属性分别是type属性、 encoding属性和ptr属性。">
+<meta name="keywords" content="Redis String">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis对象——字符串(String)">
+<meta property="og:url" content="http://blog.laoyu.site/2019/技术实践/redis/Redis对象——字符串(String)/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;上一篇文章简单介绍了Redis的对象系统。Redis使用对象来表示数据库中的键和值每个对象都由一个redisObject结构表示,该结构中和保存数据有关的三个属性分别是type属性、 encoding属性和ptr属性。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AF%B9%E8%B1%A1.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2-int.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2-raw.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2-embstr.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF--%E7%BC%93%E5%AD%98%E5%B1%82.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/%E6%AF%8F%E4%B8%AA%E6%9C%8D%E5%8A%A1%E5%8F%AA%E8%83%BD%E8%AF%BB%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84Session.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%20Session%E5%85%B1%E4%BA%AB.png">
+<meta property="og:updated_time" content="2021-03-21T08:33:03.511Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis对象——字符串(String)">
+<meta name="twitter:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;上一篇文章简单介绍了Redis的对象系统。Redis使用对象来表示数据库中的键和值每个对象都由一个redisObject结构表示,该结构中和保存数据有关的三个属性分别是type属性、 encoding属性和ptr属性。">
+<meta name="twitter:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2019/技术实践/redis/Redis对象——字符串(String)/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Redis对象——字符串(String) | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+	   <div class="main-inner main-inner-aside">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2019/技术实践/redis/Redis对象——字符串(String)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Redis对象——字符串(String)
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2019-12-24 14:38:45" itemprop="dateCreated datePublished" datetime="2019-12-24T14:38:45+08:00">2019-12-24</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-21 16:33:03" itemprop="dateModified" datetime="2021-03-21T16:33:03+08:00">2021-03-21</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2019/技术实践/redis/Redis对象——字符串(String)/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2019/技术实践/redis/Redis对象——字符串(String)/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;上一篇文章简单介绍了<code>Redis</code>的对象系统。<code>Redis</code>使用对象来表示数据库中的键和值每个对象都由一个<code>redisObject</code>结构表示,该结构中和保存数据有关的三个属性分别是<code>type</code>属性、 <code>encoding</code>属性和<code>ptr</code>属性。</p>
+<a id="more"></a>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">redisObiect</span>&#123;</span></span><br><span class="line">	<span class="comment">//类型</span></span><br><span class="line">	<span class="keyword">unsigned</span> type:<span class="number">4</span>;</span><br><span class="line">	<span class="comment">//编码</span></span><br><span class="line">	<span class="keyword">unsigned</span> encoding:<span class="number">4</span>;</span><br><span class="line">	<span class="comment">//指向底层数据结构的指针</span></span><br><span class="line">	<span class="keyword">void</span> *ptr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;字符串对象是 Redis 中最基本的数据类型,也是我们工作中最常用的数据类型。redis中的键都是字符串对象，而且其他几种数据结构都是在字符串对象基础上构建的。字符串对象的值实际可以是字符串、数字、甚至是二进制，最大不能超过512MB 。</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2.png" alt></p>
+<h3 id="一、内部实现"><a href="#一、内部实现" class="headerlink" title="一、内部实现"></a>一、内部实现</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;Redis字符串对象底层的数据结构实现主要是int和简单动态字符串SDS(这个字符串，和我们认识的C字符串不太一样，了解具体请看<a href="https://www.cnblogs.com/hunternet/p/9957913.html" target="_blank" rel="noopener">图解Redis之数据结构篇——简单动态字符串SDS</a>)，其通过不同的编码方式映射到不同的数据结构。</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AF%B9%E8%B1%A1.png" alt></p>
+<p>字符串对象的内部编码有3种 ：<code>int</code>、<code>raw</code>和<code>embstr</code>。Redis会根据当前值的类型和长度来决定使用哪种编码来实现。</p>
+<ol>
+<li><p>如果一个字符串对象保存的是整数值,并且这个整数值可以用<code>long</code>类型来表示,那么字符串对象会将整数值保存在字符串对象结构的<code>ptr</code>属性里面(将<code>void*</code>转换成<code>1ong</code>),并将字符串对象的编码设置为<code>int</code>。</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2-int.png" alt></p>
+</li>
+<li><p>如果字符串对象保存的是一个字符串值,并且这个字符串值的长度大于32字节,那么字符串对象将使用一个简单动态字符串(SDS)来保存这个字符串值,并将对象的编码设置为<code>raw</code>。</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2-raw.png" alt></p>
+</li>
+<li><p>如果字符串对象保存的是一个字符串值,并且这个字符申值的长度小于等于32字节，那么字符串对象将使用一个简单动态字符串(SDS)来保存这个字符串值，并将对象的编码设置为<code>embstr</code></p>
+</li>
+</ol>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2-embstr.png" alt></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<code>embstr</code>编码是专门用于保存短字符串的一种优化编码方式，我们可以看到<code>embstr</code>和<code>raw</code>编码都会使用<code>SDS</code>来保存值，但不同之处在于<code>embstr</code>会通过一次内存分配函数来分配一块连续的内存空间来保存<code>redisObject</code>和<code>SDS</code>。而<code>raw</code>编码会通过调用两次内存分配函数来分别分配两块空间来保存<code>redisObject</code>和<code>SDS</code>。Redis这样做会有很多好处。</p>
+<ul>
+<li><code>embstr</code>编码将创建字符串对象所需的内存分配次数从raw编码的两次降低为一次</li>
+<li>释放 <code>embstr</code>编码的字符串对象同样只需要调用一次内存释放函数</li>
+<li>因为<code>embstr</code>编码的字符串对象的所有数据都保存在一块连续的内存里面可以更好的利用CPU缓存提升性能。</li>
+</ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;Redis中根据数据类型和长度来使用不同的编码和数据结构存储存在于Redis中的每一种对象类型上。其这种小细节上的优化令我叹服不止，后续我们会看到Redis中到处都是这种内存与性能上的小细节优化！</p>
+<h3 id="二、常用命令"><a href="#二、常用命令" class="headerlink" title="二、常用命令"></a>二、常用命令</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;字符串类型的命令比较多 ,我们先来了解几个日常开发中常用的。</p>
+<h4 id="1-设置值"><a href="#1-设置值" class="headerlink" title="1 设置值"></a>1 设置值</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">redis&gt;</span> set testKey testValue</span><br><span class="line">OK</span><br></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set key value [ex seconds] [px milliseconds] [nx|xx]</span><br></pre></td></tr></table></figure>
+<ul>
+<li><p><code>ex seconds</code>：为键设置秒级过期时间。</p>
+<p>如命令:<code>set username xiaoming ex 100</code>相当于执行下面两条命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">SET username xiaoming </span><br><span class="line">EXPIRE username 100</span><br></pre></td></tr></table></figure>
+<p><code>set key value [ex seconds]</code>操作是原子性的，相比连续执行上面两个命令，它更快。</p>
+</li>
+<li><p><code>px milliseconds</code>：为键设置毫秒级过期时间。</p>
+</li>
+<li><p><code>nx</code>：键必须不存在，才可以设置成功，用于添加。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//mykey 不存在</span><br><span class="line"><span class="meta">redis&gt;</span> set mykey "Hello" nx</span><br><span class="line">(integer) 1</span><br><span class="line">//mykey 已经存在</span><br><span class="line"><span class="meta">redis&gt;</span> set mykey "World" nx</span><br><span class="line">(integer) 0</span><br><span class="line"><span class="meta">redis&gt;</span> GET mykey</span><br><span class="line">"Hello"</span><br><span class="line"><span class="meta">redis&gt;</span></span><br></pre></td></tr></table></figure>
+<p>由于<code>set key value nx</code>同样是原子性的操作，因此可以作为分布式锁的一种实现方案。</p>
+</li>
+<li><p><code>xx</code>：与nx相反，键必须存在，才可以设置成功，用于更新 </p>
+</li>
+</ul>
+<p>以上几个命令的替代命令是<code>SETNX</code>, <code>SETEX</code>,<code>PSETEX</code>，但是由于<code>SET</code>命令加上选项已经可以完全取代<code>SETNX</code>, <code>SETEX</code>,<code>PSETEX</code>的功能，所以在将来的版本中，redis可能会不推荐使用并且最终抛弃这几个命令。</p>
+<h4 id="2-获取值"><a href="#2-获取值" class="headerlink" title="2 获取值"></a>2 获取值</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">get key</span><br></pre></td></tr></table></figure>
+<p>返回<code>key</code>的<code>value</code>。如果key不存在，返回特殊值<code>nil</code>。如果<code>key</code>的<code>value</code>不是string，就返回错误，因为<code>GET</code>只处理string类型的<code>values</code>。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">redis&gt;</span> GET nokey</span><br><span class="line">(nil)</span><br><span class="line"><span class="meta">redis&gt;</span> SET mykey "Hello World"</span><br><span class="line">OK</span><br><span class="line"><span class="meta">redis&gt;</span> GET mykey</span><br><span class="line">"Hello World"</span><br></pre></td></tr></table></figure>
+<h4 id="3-批量设置值"><a href="#3-批量设置值" class="headerlink" title="3 批量设置值"></a>3 批量设置值</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;由于Redis目前的应用非常广泛，目前大多数公司对Redis的调用基本都会有一层自己的封装，看起来就像是在调用本地缓存一样，对于批量性的操作，一些对于Redis不太了解的可能就像使用本地缓存一样进行循环set。这样对性能是有很大的损耗的。实际上Redis提供了批量操作的命令。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MSET key value [key value ...]</span><br></pre></td></tr></table></figure>
+<p>对应给定的keys到他们相应的values上。<code>MSET</code>会用新的value替换已经存在的value，就像普通的<code>SET</code>命令一样。如果不想覆盖已经存在的values，可以使用<code>MSETNX key value [key value ...]</code></p>
+<p>注意:<code>MSET</code>是原子的，所以所有给定的keys是一次性set的。客户端不可能看到这种一部分keys被更新而另外的没有改变的情况。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">redis&gt;</span> MSET key1 "Hello" key2 "World"</span><br><span class="line">OK</span><br><span class="line"><span class="meta">redis&gt;</span> GET key1</span><br><span class="line">"Hello"</span><br><span class="line"><span class="meta">redis&gt;</span> GET key2</span><br><span class="line">"World"</span><br></pre></td></tr></table></figure>
+<h4 id="4-批量获取值"><a href="#4-批量获取值" class="headerlink" title="4 批量获取值"></a>4 批量获取值</h4><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">MGET key [key ...]</span><br></pre></td></tr></table></figure>
+<p>结果是按照传入键的顺序返回所有指定的key的value。对于每个不对应string或者不存在的key，都返回特殊值nil。</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">redis&gt; SET key1 <span class="string">"Hello"</span></span><br><span class="line">OK</span><br><span class="line">redis&gt; SET key2 <span class="string">"World"</span></span><br><span class="line">OK</span><br><span class="line">redis&gt; MGET key1 key2 nokey</span><br><span class="line"><span class="number">1</span>) <span class="string">"Hello"</span></span><br><span class="line"><span class="number">2</span>) <span class="string">"World"</span></span><br><span class="line"><span class="number">3</span>) (nil)</span><br></pre></td></tr></table></figure>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;Redis可以支撑每秒数万的读写操作，但是这指的是Redis服务端的处理能力，对于客户端来说，一次命令除了命令时间还是有网络时间，如n次get操作</p>
+<p>使用<code>get</code>命令</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">而`mget`操作</span><br><span class="line"></span><br><span class="line">```n次get时间 = 1次网络时间 + n次命令时间</span><br></pre></td></tr></table></figure>
+<p>而在实际开发中因为Redis的处理能力已经足够高，性能瓶颈的因素往往是网络。 </p>
+<p>学会使用批量操作，有助于提高效率，但是要掌握一个平衡的度，每次批量操作所发送的命令数并不是无节制的由于Redis是<strong>单线程架构</strong>，如果数量过多可能造成Redis阻塞或者网络拥塞。 </p>
+<h4 id="5-计数"><a href="#5-计数" class="headerlink" title="5 计数"></a>5 计数</h4><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">incr key</span><br></pre></td></tr></table></figure>
+<p>对存储在指定<code>key</code>的数值执行原子的加1操作。</p>
+<p>如果指定的key不存在，那么在执行incr操作之前，会先将它的值设定为<code>0</code>。</p>
+<p>如果指定的key中存储的值不是字符串类型（fix：）或者存储的字符串类型不能表示为一个整数，</p>
+<p>那么执行这个命令时服务器会返回一个错误(eq:(error) ERR value is not an integer or out of range)。</p>
+<p>这个操作仅限于64位的有符号整型数据。</p>
+<p><strong>注意</strong>: 由于redis并没有一个明确的类型来表示整型数据，所以这个操作是一个字符串操作。</p>
+<p>执行这个操作的时候，key对应存储的字符串被解析为10进制的<strong>64位有符号整型数据</strong>。</p>
+<p>事实上，Redis 内部采用整数形式（Integer representation）来存储对应的整数值，所以对该类字符串值实际上是用整数保存，也就不存在存储整数的字符串表示（String representation）所带来的额外消耗。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">redis&gt; SET mykey &quot;1&quot;</span><br><span class="line">OK</span><br><span class="line">redis&gt; INCR mykey</span><br><span class="line">(integer) 2</span><br><span class="line">redis&gt; GET mykey</span><br><span class="line">&quot;3&quot;</span><br><span class="line">redis&gt;</span><br></pre></td></tr></table></figure>
+<p>除了<code>incr</code>命令， Redis提供了<code>decr（自减）</code> 、 <code>incrby（自增指定数字）</code> 、<code>decrby（自减指定数字）</code> 、 <code>incrbyfloat（自增浮点数）</code>  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">decr key</span><br><span class="line">incrby key increment</span><br><span class="line">decrby key decrement</span><br><span class="line">incrbyfloat key increment</span><br></pre></td></tr></table></figure>
+<h4 id="6-其它"><a href="#6-其它" class="headerlink" title="6 其它"></a>6 其它</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;对于常用的redis字符串命令和一些其它的命令我们列一个表格以便来更直观的看到。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>描述</th>
+<th>时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>`set key value [ex seconds] [px milliseconds] [nx</td>
+<td>xx]`</td>
+<td>设置值</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>get key</code></td>
+<td>获取值</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>del key [key ...]</code></td>
+<td>删除key</td>
+<td>O(N)(N是键的个数)</td>
+</tr>
+<tr>
+<td><code>mset key [key value ...]</code></td>
+<td>批量设置值</td>
+<td>O(N)(N是键的个数)</td>
+</tr>
+<tr>
+<td><code>mget key [key ...]</code></td>
+<td>批量获取值</td>
+<td>O(N)(N是键的个数)</td>
+</tr>
+<tr>
+<td><code>incr key</code></td>
+<td>将 key 中储存的数字值增一</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>decr key</code></td>
+<td>将 key 中储存的数字值减一</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>incrby key increment</code></td>
+<td>将 key 所储存的值加上给定的增量值（increment）</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>decrby key increment</code></td>
+<td>key 所储存的值减去给定的减量值（decrement）</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>incrbyfloat key increment</code></td>
+<td>将 key 所储存的值加上给定的浮点增量值（increment）</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>append key value</code></td>
+<td>如果 key 已经存在并且是一个字符串， APPEND 命令将指定的 value 追加到该 key 原来值（value）的末尾</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>strlen key</code></td>
+<td>返回 key 所储存的字符串值的长度。</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>setrange key offset value</code></td>
+<td>用 value 参数覆写给定 key 所储存的字符串值，从偏移量 offset 开始</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><code>getrange key start end</code></td>
+<td>返回 key 中字符串值的子字符</td>
+<td>O(N)(N是字符串的长度)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="三、常用场景"><a href="#三、常用场景" class="headerlink" title="三、常用场景"></a>三、常用场景</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;reids字符串的使用场景应该是最为广泛的，甚至有些对redis其它几种对象不太熟悉的人，基本所有场景都会使用字符串(序列化一下直接扔进去)。在众多的使用场景中总结一下大概分以下几种。</p>
+<h4 id="1-作为缓存层"><a href="#1-作为缓存层" class="headerlink" title="1. 作为缓存层"></a>1. 作为缓存层</h4><p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%E5%AD%97%E7%AC%A6%E4%B8%B2%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF--%E7%BC%93%E5%AD%98%E5%B1%82.png" alt></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;如上图，Redis经常作为缓存层，来缓存一些热点数据。来加速读写性能从而降低后端的压力。一般在读取数据的时候会先从Redis中读取，如果Redis中没有，再从数据库中读取。在Redis作为缓存层使用的时候，必须注意一些问题，如：缓存穿透、雪崩以及缓存更新问题……</p>
+<h4 id="2-计数器-限速器-分布式系统ID"><a href="#2-计数器-限速器-分布式系统ID" class="headerlink" title="2. 计数器\限速器\分布式系统ID"></a>2. 计数器\限速器\分布式系统ID</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;计数器\限速器\分布式ID等主要是利用Redis字符串自增自减的特性。</p>
+<ul>
+<li>计数器：经常可以被用来做计数器，如微博的评论数、点赞数、分享数，抖音作品的收藏数，京东商品的销售量、评价数等。</li>
+<li>限速器：如验证码接口访问频率限制，用户登陆时需要让用户输入手机验证码，从而确定是否是用户本人，但是为了短信接口不被频繁访问，会限制用户每分钟获取验证码的频率，例如一分钟不能超过5次。</li>
+<li>分布式ID：由于Redis自增自减的操作是原子性的因此也经常在分布式系统中用来生成唯一的订单号、序列号等。</li>
+</ul>
+<h4 id="3-分布式系统共享session"><a href="#3-分布式系统共享session" class="headerlink" title="3. 分布式系统共享session"></a>3. 分布式系统共享session</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;通常在单体系统中，Web服务将会用户的Session信息（例如用户登录信息）保存在自己的服务器中。但是在分布式系统中，这样做会有问题。因为分布式系统通常有很多个服务，每个服务又会同时部署在多台机器上，通过负载均衡机制将将用户的访问均衡到不同服务器上。这个时候用户的请求可能分发到不同的服务器上，从而导致用户登录保存Session是在一台服务器上，而读取Session是在另一台服务器上因此会读不到Session。</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/%E6%AF%8F%E4%B8%AA%E6%9C%8D%E5%8A%A1%E5%8F%AA%E8%83%BD%E8%AF%BB%E5%86%99%E8%87%AA%E5%B7%B1%E7%9A%84Session.png" alt></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;这种问题通常的做法是把Session存到一个公共的地方，让每个Web服务，都去这个公共的地方存取Session。而Redis就可以是这个公共的地方。(数据库、memecache等都可以各有优缺点)。</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%AD%97%E7%AC%A6%E4%B8%B2/Redis%20Session%E5%85%B1%E4%BA%AB.png" alt></p>
+<h4 id="4-二进制存储"><a href="#4-二进制存储" class="headerlink" title="4. 二进制存储"></a>4. 二进制存储</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;由于Redis字符串可以存储二进制数据的特性，因此也可以用来存储一些二进制数据。如图片、 音频、 视频等。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p>《Redis设计与实现》</p>
+<p>《Redis开发与运维》</p>
+<p>《Redis官方文档》</p>
+<h3 id="——-END——"><a href="#——-END——" class="headerlink" title="——-END——-"></a>——-END——-</h3>
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2019/技术实践/redis/Redis对象——字符串(String)/" title="Redis对象——字符串(String)">2019/技术实践/redis/Redis对象——字符串(String)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Redis/" rel="tag"><i class="fa fa-tag"></i> Redis</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/技术实践/redis/Redis对象——Redis对象系统简介/" rel="next" title="Redis对象——Redis对象系统简介">
+                <i class="fa fa-chevron-left"></i> Redis对象——Redis对象系统简介
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/redis_command/hash/hscan/" rel="prev" title="HSCAN(hscan)">
+                HSCAN(hscan) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一、内部实现"><span class="nav-text">一、内部实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、常用命令"><span class="nav-text">二、常用命令</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-设置值"><span class="nav-text">1 设置值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-获取值"><span class="nav-text">2 获取值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-批量设置值"><span class="nav-text">3 批量设置值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-批量获取值"><span class="nav-text">4 批量获取值</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#5-计数"><span class="nav-text">5 计数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#6-其它"><span class="nav-text">6 其它</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、常用场景"><span class="nav-text">三、常用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-作为缓存层"><span class="nav-text">1. 作为缓存层</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-计数器-限速器-分布式系统ID"><span class="nav-text">2. 计数器\限速器\分布式系统ID</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-分布式系统共享session"><span class="nav-text">3. 分布式系统共享session</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4-二进制存储"><span class="nav-text">4. 二进制存储</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#——-END——"><span class="nav-text">——-END——-</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="哈希在很多编程语言中都有着很广泛的应用，而在Redis中也是如此，在redis中，哈希类型是指Redis键值对中的值本身又是一个键值对结构，形如value=[{field1，value1}，...{fieldN，valueN}]">
+<meta name="keywords" content="Redis,Hash">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis对象——哈希(Hash)">
+<meta property="og:url" content="http://blog.laoyu.site/2020/技术实践/redis/Redis对象——哈希(Hash)/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="哈希在很多编程语言中都有着很广泛的应用，而在Redis中也是如此，在redis中，哈希类型是指Redis键值对中的值本身又是一个键值对结构，形如value=[{field1，value1}，...{fieldN，valueN}]">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%93%88%E5%B8%8C/Redis-Hash.png">
+<meta property="og:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%93%88%E5%B8%8C/Redis-Hash%20%281%29.png">
+<meta property="og:updated_time" content="2021-03-14T03:04:50.719Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis对象——哈希(Hash)">
+<meta name="twitter:description" content="哈希在很多编程语言中都有着很广泛的应用，而在Redis中也是如此，在redis中，哈希类型是指Redis键值对中的值本身又是一个键值对结构，形如value=[{field1，value1}，...{fieldN，valueN}]">
+<meta name="twitter:image" content="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%93%88%E5%B8%8C/Redis-Hash.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2020/技术实践/redis/Redis对象——哈希(Hash)/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Redis对象——哈希(Hash) | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+	   <div class="main-inner main-inner-aside">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2020/技术实践/redis/Redis对象——哈希(Hash)/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Redis对象——哈希(Hash)
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2020-03-23 10:45:38" itemprop="dateCreated datePublished" datetime="2020-03-23T10:45:38+08:00">2020-03-23</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 11:04:50" itemprop="dateModified" datetime="2021-03-14T11:04:50+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2020/技术实践/redis/Redis对象——哈希(Hash)/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2020/技术实践/redis/Redis对象——哈希(Hash)/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>哈希在很多编程语言中都有着很广泛的应用，而在Redis中也是如此，在redis中，哈希类型是指Redis键值对中的值本身又是一个键值对结构，形如<code>value=[{field1，value1}，...{fieldN，valueN}]</code><a id="more"></a>，其与Redis字符串对象的区别如下图所示:</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%93%88%E5%B8%8C/Redis-Hash.png" alt="Redis-Hash"></p>
+<h3 id="一、内部编码"><a href="#一、内部编码" class="headerlink" title="一、内部编码"></a>一、内部编码</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;哈希类型的内部编码有两种：<a href="http://blog.laoyu.site/2019/redis/Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E2%80%94%E2%80%94%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/">ziplist(压缩列表)</a>,<a href="http://blog.laoyu.site/2018/redis/Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E2%80%94%E2%80%94%E5%AD%97%E5%85%B8/">hashtable(哈希表)</a>。只有当存储的数据量比较小的情况下，Redis 才使用压缩列表来实现字典类型。具体需要满足两个条件：</p>
+<ul>
+<li>当哈希类型元素个数小于hash-max-ziplist-entries配置（默认512个）  </li>
+<li><p>所有值都小于hash-max-ziplist-value配置（默认64字节）<br><code>ziplist</code>使用更加紧凑的结构实现多个元素的连续存储，所以在节省内存方面比<code>hashtable</code>更加优秀。当哈希类型无法满足<code>ziplist</code>的条件时，Redis会使用<code>hashtable</code>作为哈希的内部实现，因为此时<code>ziplist</code>的读写效率会下降，而<code>hashtable</code>的读写时间复杂度为O（1）。<br>有关ziplist和hashtable这两种redis底层数据结构的具体实现可以参考我的另外两篇文章。</p>
+<p><a href="http://blog.laoyu.site/2019/redis/Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E2%80%94%E2%80%94%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8/">Redis数据结构——压缩列表</a></p>
+<p><a href="http://blog.laoyu.site/2018/redis/Redis%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E2%80%94%E2%80%94%E5%AD%97%E5%85%B8/">Redis数据结构——字典</a>。</p>
+</li>
+</ul>
+<h3 id="二、常用命令"><a href="#二、常用命令" class="headerlink" title="二、常用命令"></a>二、常用命令</h3><p>Redis哈希对象常用命令如下表(点击命令可查看命令详细说明)。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>说明</th>
+<th>时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hdel/">HDEL key field [field …]</a></td>
+<td>删除一个或多个Hash的field</td>
+<td>O(N) N是被删除的字段数量。</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hexists/">HEXISTS key field</a></td>
+<td>判断field是否存在于hash中</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hget/">HGET key field</a></td>
+<td>获取hash中field的值</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hgetall/">HGETALL key</a></td>
+<td>从hash中读取全部的域和值</td>
+<td>O(N) N是Hash的长度</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hincrby/">HINCRBY key field increment</a></td>
+<td>将hash中指定域的值增加给定的数字</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hincrbyfloat/">HINCRBYFLOAT key field increment</a></td>
+<td>将hash中指定域的值增加给定的浮点数</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hkeys/">HKEYS key</a></td>
+<td>获取hash的所有字段</td>
+<td>O(N) N是Hash的长度</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hlen/">HLEN key</a></td>
+<td>获取hash里所有字段的数量</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hmget/">HMGET key field [field …]</a></td>
+<td>获取hash里面指定字段的值</td>
+<td>O(N) N是请求的字段数</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hmset/">HMSET key field value [field value …]</a></td>
+<td>设置hash字段值</td>
+<td>O(N) N是设置的字段数</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hset/">HSET key field value</a></td>
+<td>设置hash里面一个字段的值</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hsetnx/">HSETNX key field value</a></td>
+<td>设置hash的一个字段，只有当这个字段不存在时有效</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hstrlen/">HSTRLEN key field</a></td>
+<td>获取hash里面指定field的长度</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hvals/">HVALS key</a></td>
+<td>获得hash的所有值</td>
+<td>O(N) N是Hash的长度</td>
+</tr>
+<tr>
+<td><a href="http://blog.laoyu.site/2020/redis_command/hash/hscan/">HSCAN key cursor [MATCH pattern] [COUNT count]</a></td>
+<td>迭代hash里面的元素</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="三、适用场景"><a href="#三、适用场景" class="headerlink" title="三、适用场景"></a>三、适用场景</h3><h4 id="3-1-存储对象"><a href="#3-1-存储对象" class="headerlink" title="3.1 存储对象"></a>3.1 存储对象</h4><p>​    Redis哈希对象常常用来缓存一些对象信息，如用户信息、商品信息、配置信息等。</p>
+<p>我们以用户信息为例,它在关系型数据库中的结构是这样的</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>uid</th>
+<th>name</th>
+<th>age</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Tom</td>
+<td>15</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Jerry</td>
+<td>13</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>而使用Redis Hash存储其结构如下图:</p>
+<p><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/redis/%E5%AF%B9%E8%B1%A1%E7%AF%87/%E5%93%88%E5%B8%8C/Redis-Hash%20%281%29.png" alt></p>
+<p>相比较于使用Redis字符串存储，其有以下几个优缺点:</p>
+<ol>
+<li><p>原生字符串每个属性一个键。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">set user:1:name Tom</span><br><span class="line">set user:1:age 15</span><br></pre></td></tr></table></figure>
+<p>优点：简单直观，每个属性都支持更新操作。<br>缺点：占用过多的键，内存占用量较大，同时用户信息内聚性比较差，所以此种方案一般不会在生产环境使用。</p>
+</li>
+<li><p>序列化字符串后，将用户信息序列化后用一个键保存</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set user:1 serialize(userInfo)</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>   优点：简化编程，如果合理的使用序列化可以提高内存的使用效率。<br>   缺点：序列化和反序列化有一定的开销，同时每次更新属性都需要把全部数据取出进行反序列化，更新后再序列化到Redis中。</p>
+<ol>
+<li><p>哈希类型：每个用户属性使用一对field-value，但是只用一个键保存。</p>
+ <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hmset user:1 name Tom age 15</span><br></pre></td></tr></table></figure>
+<p>优点：简单直观，如果使用合理可以减少内存空间的使用。<br>缺点：要控制哈希在ziplist和hashtable两种内部编码的转换，hashtable会消耗更多内存。</p>
+</li>
+</ol>
+<p>此外，我们曾经在做配置中心系统的时候，使用Hash来缓存每个应用的配置信息,其在数据库中的数据结构大致如下表</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>AppId</th>
+<th>SettingKey</th>
+<th>SettingValue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>10001</td>
+<td>AppName</td>
+<td>myblog</td>
+</tr>
+<tr>
+<td>10001</td>
+<td>Version</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>10002</td>
+<td>AppName</td>
+<td>admin site</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>在使用Redis Hash进行存储的时候</p>
+<p>新增或更新一个配置项</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HSET <span class="number">10001</span> AppName myblog</span><br><span class="line">(integer) <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>获取一个配置项</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HGET <span class="number">10001</span> AppName </span><br><span class="line"><span class="string">"myblog"</span></span><br></pre></td></tr></table></figure>
+<p>删除一个配置项</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HDEL <span class="number">10001</span> AppName</span><br><span class="line">(integer) <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<h4 id="3-2-购物车"><a href="#3-2-购物车" class="headerlink" title="3.2 购物车"></a>3.2 购物车</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;很多电商网站都会使用 cookie实现购物车，也就是将整个购物车都存储到 cookie里面。这种做法的一大<strong>优点:</strong>无须对数据库进行写入就可以实现购物车功能,这种方式大大提高了购物车的性能，而<strong>缺点</strong>则是程序需要重新解析和验证( validate) cookie,确保cookie的格式正确,并且包含的商品都是真正可购买的商品。cookie购物车还有一个<strong>缺点</strong>:因为浏览器每次发送请求都会连 cookie一起发送,所以如果购物车cookie的体积比较大,那么请求发送和处理的速度可能会有所降低。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;购物车的定义非常简单:我们以每个用户的用户ID(或者CookieId)作为Redis的Key,每个用户的购物车都是一个哈希表,这个哈希表存储了商品ID与商品订购数量之间的映射。在商品的订购数量出现变化时,我们操作Redis哈希对购物车进行更新:</p>
+<p>如果用户订购某件商品的数量大于0,那么程序会将这件商品的ID以及用户订购该商品的数量添加到散列里面。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//用户1 商品1 数量1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HSET uid:<span class="number">1</span> pid:<span class="number">1</span> <span class="number">1</span></span><br><span class="line">(integer) <span class="number">1</span> <span class="comment">//返回值0代表改field在哈希表中不存在，为新增的field</span></span><br></pre></td></tr></table></figure>
+<p>如果用户购买的商品已经存在于散列里面,那么新的订购数量会覆盖已有的订购数量;</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//用户1 商品1 数量5</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HSET uid:<span class="number">1</span> pid:<span class="number">1</span> <span class="number">5</span></span><br><span class="line">(integer) <span class="number">0</span> <span class="comment">//返回值0代表改field在哈希表中已经存在</span></span><br></pre></td></tr></table></figure>
+<p>相反地,如果用户订购某件商品的数量不大于0,那么程序将从散列里面移除该条目。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//用户1 商品1</span><br><span class="line">127.0.0.1:6379&gt; HDEL uid:1 pid:2</span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
+<h4 id="3-3-计数器"><a href="#3-3-计数器" class="headerlink" title="3.3 计数器"></a>3.3 计数器</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;Redis 哈希表作为计数器的使用也非常广泛。它常常被用在记录网站每一天、一月、一年的访问数量。每一次访问，我们在对应的field上自增1</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//记录我的</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HINCRBY MyBlog  <span class="number">202001</span> <span class="number">1</span></span><br><span class="line">(integer) <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HINCRBY MyBlog  <span class="number">202001</span> <span class="number">1</span></span><br><span class="line">(integer) <span class="number">2</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HINCRBY MyBlog  <span class="number">202002</span> <span class="number">1</span></span><br><span class="line">(integer) <span class="number">1</span></span><br><span class="line"><span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span>:<span class="number">6379</span>&gt; HINCRBY MyBlog  <span class="number">202002</span> <span class="number">1</span></span><br><span class="line">(integer) <span class="number">2</span></span><br></pre></td></tr></table></figure>
+<p>也经常被用在记录商品的好评数量，差评数量上</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; HINCRBY pid:1  Good 1</span><br><span class="line">(integer) 1</span><br><span class="line">127.0.0.1:6379&gt; HINCRBY pid:1  Good 1</span><br><span class="line">(integer) 2</span><br><span class="line">127.0.0.1:6379&gt; HINCRBY pid:1  bad  1</span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
+<p>也可以实时记录当天的在线的人数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//有人登陆</span><br><span class="line">127.0.0.1:6379&gt; HINCRBY MySite  20200310 1</span><br><span class="line">(integer) 1</span><br><span class="line">//有人登陆</span><br><span class="line">127.0.0.1:6379&gt; HINCRBY MySite  20200310 1</span><br><span class="line">(integer) 2</span><br><span class="line">//有人登出</span><br><span class="line">127.0.0.1:6379&gt; HINCRBY MySite  20200310 -1</span><br><span class="line">(integer) 1</span><br></pre></td></tr></table></figure>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>本篇文章我们总结了Redis 哈希对象的内部实现、常用命令以及常用的一些场景，那么大家在项目中对Redis哈希对象的使用都有哪些场景呢，欢迎在评论区给我留言和分享，我会第一时间反馈！我们共同学习与进步！</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p>《Redis设计与实现》</p>
+<p>《Redis开发与运维》</p>
+<p>《Redis官方文档》</p>
+<h3 id="——-END——"><a href="#——-END——" class="headerlink" title="——-END——-"></a>——-END——-</h3>
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2020/技术实践/redis/Redis对象——哈希(Hash)/" title="Redis对象——哈希(Hash)">2020/技术实践/redis/Redis对象——哈希(Hash)/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Redis/" rel="tag"><i class="fa fa-tag"></i> Redis</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2020/技术实践/spring-boot/Spring Boot(四) Mybatis-MySql/" rel="next" title="Spring Boot(四) Mybatis-MySql">
+                <i class="fa fa-chevron-left"></i> Spring Boot(四) Mybatis-MySql
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2020/技术实践/redis/Redis数据结构——quicklist/" rel="prev" title="Redis数据结构——quicklist">
+                Redis数据结构——quicklist <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、内部编码"><span class="nav-text">一、内部编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、常用命令"><span class="nav-text">二、常用命令</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、适用场景"><span class="nav-text">三、适用场景</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-存储对象"><span class="nav-text">3.1 存储对象</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-购物车"><span class="nav-text">3.2 购物车</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-3-计数器"><span class="nav-text">3.3 计数器</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#——-END——"><span class="nav-text">——-END——-</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

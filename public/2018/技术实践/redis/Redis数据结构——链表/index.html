@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Redis链表为双向无环链表！ &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;图解Redis之数据结构篇——简单动态字符串SDS提到Redis使用了简单动态字符串，链表，字典(散列表),跳跃表,整数集合,压缩列表这些数据结构来操作内存，并且简单介绍了Redis简单动态字符串。本篇文章我们继续来分析链表。 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;n">
+<meta name="keywords" content="Redis,数据结构,链表">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis数据结构——链表">
+<meta property="og:url" content="http://blog.laoyu.site/2018/技术实践/redis/Redis数据结构——链表/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Redis链表为双向无环链表！ &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;图解Redis之数据结构篇——简单动态字符串SDS提到Redis使用了简单动态字符串，链表，字典(散列表),跳跃表,整数集合,压缩列表这些数据结构来操作内存，并且简单介绍了Redis简单动态字符串。本篇文章我们继续来分析链表。 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;n">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/28083089.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/2369874.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/10687399.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-15/66618313.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/87832417.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-15/37524267.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/90004345.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-15/16682936.jpg">
+<meta property="og:updated_time" content="2021-03-14T03:04:50.721Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis数据结构——链表">
+<meta name="twitter:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Redis链表为双向无环链表！ &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;图解Redis之数据结构篇——简单动态字符串SDS提到Redis使用了简单动态字符串，链表，字典(散列表),跳跃表,整数集合,压缩列表这些数据结构来操作内存，并且简单介绍了Redis简单动态字符串。本篇文章我们继续来分析链表。 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;n">
+<meta name="twitter:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/28083089.jpg">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2018/技术实践/redis/Redis数据结构——链表/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Redis数据结构——链表 | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+	   <div class="main-inner main-inner-aside">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2018/技术实践/redis/Redis数据结构——链表/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Redis数据结构——链表
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-15 10:45:38" itemprop="dateCreated datePublished" datetime="2018-11-15T10:45:38+08:00">2018-11-15</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 11:04:50" itemprop="dateModified" datetime="2021-03-14T11:04:50+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/技术实践/redis/Redis数据结构——链表/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/技术实践/redis/Redis数据结构——链表/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;Redis链表为双向无环链表！</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;<a href="http://blog.loading.ink/2018/11/14/%E5%9B%BE%E8%A7%A3Redis%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AF%87%E2%80%94%E2%80%94%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2SDS/" target="_blank" rel="noopener">图解Redis之数据结构篇——简单动态字符串SDS</a>提到Redis使用了简单动态字符串，链表，字典(散列表),跳跃表,整数集合,压缩列表这些数据结构来操作内存，并且简单介绍了Redis简单动态字符串。本篇文章我们继续来分析链表。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;链表是一种非常常见的数据结构，在Redis中使用非常广泛，列表对象的底层实现之一就是链表。其它如慢查询，发布订阅，监视器等功能也用到了链表。</p>
+<a id="more"></a>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/28083089.jpg" alt="Redis对象结构"></p>
+<h3 id="系列文章"><a href="#系列文章" class="headerlink" title="系列文章"></a>系列文章</h3><p><a href="http://blog.loading.ink/2018/11/14/%E5%9B%BE%E8%A7%A3Redis%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AF%87%E2%80%94%E2%80%94%E7%AE%80%E5%8D%95%E5%8A%A8%E6%80%81%E5%AD%97%E7%AC%A6%E4%B8%B2SDS/" target="_blank" rel="noopener">图解Redis之数据结构篇——简单动态字符串SDS</a></p>
+<p><a href="http://blog.loading.ink/2018/11/15/%E5%9B%BE%E8%A7%A3Redis%E4%B9%8B%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E7%AF%87%E2%80%94%E2%80%94%E9%93%BE%E8%A1%A8/" target="_blank" rel="noopener">图解Redis之数据结构篇——链表</a></p>
+<h3 id="一、复习链表"><a href="#一、复习链表" class="headerlink" title="一、复习链表"></a>一、复习链表</h3><h4 id="1-1-数组与链表"><a href="#1-1-数组与链表" class="headerlink" title="1.1 数组与链表"></a>1.1 数组与链表</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;数组需要一块连续的内存来存储，这个特性有利也有弊。好处是其支持根据索引下标”随机访问”(时间复杂度为O(1))，但是其插入与删除操作为了保证在内存中的连续性将会变得非常低效(时间复杂度为O(N))，并且其一经声明就要占用整块连续内存空间，如果声明过大，系统可能内存不足，声明过小又可能导致不够用，而当数组的空间不足的时候需要对其进行扩容(申请一个更大的空间，将原数组拷贝过去)。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;而链表恰恰相反，其不需要一块连续的内存空间，其通过”指针”将一组零散的内存连接起来使用。其优点在于本身没有大小限制，天然支持扩容，插入删除操作高效(时间复杂度为O(1))，但缺点是随机访问低效(时间复杂度为O(N))。并且由于需要额外的空间存储指针。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/2369874.jpg" alt="数组与链表"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;链表的实现方式有很多种，常见的主要有三个，单向链表、双向链表、循环链表。</p>
+<h4 id="1-2-单链表"><a href="#1-2-单链表" class="headerlink" title="1.2 单链表"></a>1.2 单链表</h4><p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/10687399.jpg" alt="单链表"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;单链表中每个节点除了包含数据之外还包含一个指针，叫后继指针，因此需要额外的空间来存储后继节点的地址。有两个特殊的节点,头结点和尾节点，其中头节点用来记录链表的基地址，有了它就可以遍历整个链表，尾节点的后继指针不是指向下一个节点，而是指向一个空地址NULL表示这是链表上最后一个节点。与数组一样，单链表也支持数据的查找、插入和删除操作，其中插入和删除操作只需要考虑相邻节点指针的变化，因此为常数级时间复杂度O(1)。要想随机访问第 k 个元素，就没有数组那么高效了。因为链表中的数据并非连续存储的，所以无法像数组那样，根据首地址和下标，通过寻址公式就能直接计算出对应的内存地址，而是需要根据指针一个结点一个结点地依次遍历，直到找到相应的结点，因此时间复杂度为O(N)。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-15/66618313.jpg" alt="单链表插入与删除操作"></p>
+<h4 id="1-3-双向链表"><a href="#1-3-双向链表" class="headerlink" title="1.3 双向链表"></a>1.3 双向链表</h4><p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/87832417.jpg" alt="双向链表"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;双向链表和单链表不同的是多了一个前驱指针，双向链表需要额外的两个空间来存储后继结点和前驱结点的地址。因此存储同样多的数据，双向链表占用比单链表更多的空间。但其优点在于支持双向遍历，体现在以下两个方面。</p>
+<ul>
+<li>在有序链表中查找某个元素，单链表由于只有后继指针，因此只能从前往后遍历查找时间复杂度为O(N)，而双向链表可以双向遍历，因此可以采用二分的思想进行查找，时间复杂度为O(logn)。</li>
+<li>删除给定指针指向的结点。假设已经找到要删除的节点，要删除就必须知道其前驱节点和后继节点，单链表想要知道其前驱节点只能从头开始遍历，时间复杂度为0(n)，而双向链表由于保存了其前驱节点的地址，因此时间复杂度为0(1)。</li>
+</ul>
+<h4 id="1-4-循环链表"><a href="#1-4-循环链表" class="headerlink" title="1.4 循环链表"></a>1.4 循环链表</h4><p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-15/37524267.jpg" alt="循环链表"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;顾名思义。循环链表与单、双链表不同的是其呈环状，单循环链表中其尾节点并非指向NULL而是指向头结点。双循环链表中其头节点的前驱指针指向尾节点，尾节点的后继指针指向头结点。循环链表的优势在于链尾到链头，链头到链尾比较方便适合处理的数据具有环型结构特点。</p>
+<h3 id="二、Redis链表"><a href="#二、Redis链表" class="headerlink" title="二、Redis链表"></a>二、Redis链表</h3><h4 id="2-1-双向无环链表"><a href="#2-1-双向无环链表" class="headerlink" title="2.1 双向无环链表"></a>2.1 双向无环链表</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;Redis链表使用双向无环链表。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-14/90004345.jpg" alt="Redis双向无环链表"></p>
+<p>如图所示，Redis使用一个listNode结构来表示。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">listNode</span></span></span><br><span class="line"><span class="class">&#123;</span> </span><br><span class="line">	<span class="comment">// 前置节点 </span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">listNode</span> *<span class="title">prev</span>;</span> </span><br><span class="line">	<span class="comment">// 后置节点 </span></span><br><span class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">listNode</span> *<span class="title">next</span>;</span> </span><br><span class="line">	<span class="comment">// 节点的值 </span></span><br><span class="line">	<span class="keyword">void</span> *value; </span><br><span class="line">&#125; listNode;</span><br></pre></td></tr></table></figure>
+<h4 id="2-2-list结构"><a href="#2-2-list结构" class="headerlink" title="2.2 list结构"></a>2.2 list结构</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;同时Redis为了方便的操作链表，提供了一个list结构来持有链表。如下图所示</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-15/16682936.jpg" alt="list结构"></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">list</span>&#123;</span></span><br><span class="line">    <span class="comment">//表头节点</span></span><br><span class="line">    listNode *head;</span><br><span class="line">    <span class="comment">//表尾节点</span></span><br><span class="line">    listNode *tail;</span><br><span class="line">    <span class="comment">//链表所包含的节点数量</span></span><br><span class="line">    <span class="keyword">unsigned</span> <span class="keyword">long</span> len;</span><br><span class="line">    <span class="comment">//节点值复制函数</span></span><br><span class="line">    <span class="keyword">void</span> *(*dup)(<span class="keyword">void</span> *ptr);</span><br><span class="line">    <span class="comment">//节点值释放函数</span></span><br><span class="line">    <span class="keyword">void</span> *(*<span class="built_in">free</span>)(<span class="keyword">void</span> *ptr);</span><br><span class="line">    <span class="comment">//节点值对比函数</span></span><br><span class="line">    <span class="keyword">int</span> (*match)(<span class="keyword">void</span> *ptr,<span class="keyword">void</span> *key);</span><br><span class="line">&#125;<span class="built_in">list</span>;</span><br></pre></td></tr></table></figure>
+<p>Redis链表结构其主要特性如下:</p>
+<ul>
+<li>双向：链表节点带有前驱、后继指针获取某个节点的前驱、后继节点的时间复杂度为0(1)。</li>
+<li>无环: 链表为非循环链表表头节点的前驱指针和表尾节点的后继指针都指向NULL，对链表的访问以NULL为终点。</li>
+<li>带表头指针和表尾指针：通过list结构中的head和tail指针，获取表头和表尾节点的时间复杂度都为O(1)。</li>
+<li>带链表长度计数器:通过list结构的len属性获取节点数量的时间复杂度为O(1)。</li>
+<li>多态：链表节点使用void*指针保存节点的值，并且可以通过list结构的dup、free、match三个属性为节点值设置类型特定函数，所以链表可以用来保存各种不同类型的值。</li>
+</ul>
+<h4 id="2-3-双向无环链表在Redis中的使用"><a href="#2-3-双向无环链表在Redis中的使用" class="headerlink" title="2.3 双向无环链表在Redis中的使用"></a>2.3 双向无环链表在Redis中的使用</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;链表在Redis中的应用非常广泛，列表对象的底层实现之一就是链表。此外如发布订阅、慢查询、监视器等功能也用到了链表。我们现在简单想一想Redis为什么要使用双向无环链表这种数据结构，而不是使用数组、单向链表等。既然列表对象的底层实现之一是链表，那么我们通过一个表格来分析列表对象的常用操作命令。如果分别使用数组、单链表和双向链表实现列表对象的时间复杂度对照如下:</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>操作\时间复杂度</th>
+<th>数组</th>
+<th>单链表</th>
+<th>双向链表</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>rpush(从右边添加元素)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>lpush(从左边添加元素)</td>
+<td>0(N)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>lpop (从右边删除元素)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>rpop (从左边删除元素)</td>
+<td>O(N)</td>
+<td>O(1)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>lindex(获取指定索引下标的元素)</td>
+<td>O(1)</td>
+<td>O(N)</td>
+<td>O(N)</td>
+</tr>
+<tr>
+<td>len (获取长度)</td>
+<td>O(N)</td>
+<td>O(N)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>linsert(向某个元素前或后插入元素)</td>
+<td>O(N)</td>
+<td>O(N)</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>lrem (删除指定元素)</td>
+<td>O(N)</td>
+<td>O(N)</td>
+<td>O(N)</td>
+</tr>
+<tr>
+<td>lset (修改指定索引下标元素)</td>
+<td>O(N)</td>
+<td>O(N)</td>
+<td>O(N)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;我们可以看到在列表对象常用的操作中双向链表的优势所在。但双向链表因为使用两个额外的空间存储前驱和后继指针，因此在数据量较小的情况下会造成空间上的浪费(因为数据量小的时候速度上的差别不大，但空间上的差别很大)。这是一个时间换空间还是空间换时间的思想问题，Redis在列表对象中小数据量的时候使用压缩列表作为底层实现，而大数据量的时候才会使用双向无环链表。(关于列表对象后续会有文章继续介绍可访问我的个人博客持续关注<a href="http://blog.loading.ink" target="_blank" rel="noopener">blog.loading.ink</a>)</p>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;链表作为一种非常常用的数据结构，内置在许多编程语言里面，更是找工作过程中经常问的面试题之一。本篇文章简单复习了链表这种数据结构常见的几种形式，并且简单分析了Redis中链表的使用。下篇文章将继续分享Redis中用到的数据结构Hash。敬请关注!</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p>《Redis设计与实现》</p>
+<p>《Redis开发与运维》</p>
+<p>《Redis官方文档》</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2018/技术实践/redis/Redis数据结构——链表/" title="Redis数据结构——链表">2018/技术实践/redis/Redis数据结构——链表/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Redis/" rel="tag"><i class="fa fa-tag"></i> Redis</a>
+          
+            <a href="/tags/数据结构/" rel="tag"><i class="fa fa-tag"></i> 数据结构</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/" rel="next" title="软件(敏捷)开发中工作量工时评估方法">
+                <i class="fa fa-chevron-left"></i> 软件(敏捷)开发中工作量工时评估方法
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/技术实践/redis/Redis数据结构——字典/" rel="prev" title="Redis数据结构——字典">
+                Redis数据结构——字典 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#系列文章"><span class="nav-text">系列文章</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一、复习链表"><span class="nav-text">一、复习链表</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-数组与链表"><span class="nav-text">1.1 数组与链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-单链表"><span class="nav-text">1.2 单链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-双向链表"><span class="nav-text">1.3 双向链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-4-循环链表"><span class="nav-text">1.4 循环链表</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、Redis链表"><span class="nav-text">二、Redis链表</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-双向无环链表"><span class="nav-text">2.1 双向无环链表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-list结构"><span class="nav-text">2.2 list结构</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-双向无环链表在Redis中的使用"><span class="nav-text">2.3 双向无环链表在Redis中的使用</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

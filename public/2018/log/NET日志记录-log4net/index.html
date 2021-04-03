@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="1.概述log4net是.Net下一个非常优秀的开源日志记录组件。log4net记录日志的功能非常强大。它可以将日志分不同的等级，以不同的格式，输出到不同的媒介。">
+<meta name="keywords" content="日志记录,log4net">
+<meta property="og:type" content="article">
+<meta property="og:title" content=".NET日志记录-log4net">
+<meta property="og:url" content="http://blog.laoyu.site/2018/log/NET日志记录-log4net/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="1.概述log4net是.Net下一个非常优秀的开源日志记录组件。log4net记录日志的功能非常强大。它可以将日志分不同的等级，以不同的格式，输出到不同的媒介。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-03-14T03:04:50.698Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content=".NET日志记录-log4net">
+<meta name="twitter:description" content="1.概述log4net是.Net下一个非常优秀的开源日志记录组件。log4net记录日志的功能非常强大。它可以将日志分不同的等级，以不同的格式，输出到不同的媒介。">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2018/log/NET日志记录-log4net/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>.NET日志记录-log4net | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+	   <div class="main-inner main-inner-aside">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2018/log/NET日志记录-log4net/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">.NET日志记录-log4net
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-13 10:33:18" itemprop="dateCreated datePublished" datetime="2018-11-13T10:33:18+08:00">2018-11-13</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 11:04:50" itemprop="dateModified" datetime="2021-03-14T11:04:50+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/日志/" itemprop="url" rel="index"><span itemprop="name">日志</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/log/NET日志记录-log4net/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/log/NET日志记录-log4net/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="1-概述"><a href="#1-概述" class="headerlink" title="1.概述"></a>1.概述</h3><p>log4net是.Net下一个非常优秀的开源日志记录组件。log4net记录日志的功能非常强大。它可以将日志分不同的等级，以不同的格式，输出到不同的媒介。</p>
+<a id="more"></a>
+<h3 id="2-Log4net的主要组成部分"><a href="#2-Log4net的主要组成部分" class="headerlink" title="2.Log4net的主要组成部分"></a>2.Log4net的主要组成部分</h3><h4 id="2-1-Appenders"><a href="#2-1-Appenders" class="headerlink" title="2.1 Appenders"></a>2.1 <strong>Appenders</strong></h4><p>Appenders用来定义日志的输出方式，即日志要写到那种介质上去。较常用的Log4net已经实现好了，直接在配置文件中调用即可，可参见上面配置文件例子；当然也可以自己写一个，需要从log4net.Appender.AppenderSkeleton类继承。它还可以通过配置Filters和Layout来实现日志的过滤和输出格式。</p>
+<p>已经实现的输出方式有：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line">AdoNetAppender 将日志记录到数据库中。可以采用SQL和存储过程两种方式。</span><br><span class="line"></span><br><span class="line">AnsiColorTerminalAppender 将日志高亮输出到ANSI终端。</span><br><span class="line"></span><br><span class="line">AspNetTraceAppender  能用asp.net中Trace的方式查看记录的日志。</span><br><span class="line"></span><br><span class="line">BufferingForwardingAppender 在输出到子Appenders之前先缓存日志事件。</span><br><span class="line"></span><br><span class="line">ConsoleAppender 将日志输出到应用程序控制台。</span><br><span class="line"></span><br><span class="line">EventLogAppender 将日志写到Windows Event Log。</span><br><span class="line"></span><br><span class="line">FileAppender 将日志输出到文件。</span><br><span class="line"></span><br><span class="line">ForwardingAppender 发送日志事件到子Appenders。</span><br><span class="line"></span><br><span class="line">LocalSyslogAppender 将日志写到local syslog service (仅用于UNIX环境下)。</span><br><span class="line"></span><br><span class="line">MemoryAppender 将日志存到内存缓冲区。</span><br><span class="line"></span><br><span class="line">NetSendAppender 将日志输出到Windows Messenger service.这些日志信息将在用户终端的对话框中显示。</span><br><span class="line"></span><br><span class="line">OutputDebugStringAppender 将日志输出到Debuger，如果程序没有Debuger，就输出到系统Debuger。如果系统Debuger也不可用，将忽略消息。</span><br><span class="line"></span><br><span class="line">RemoteSyslogAppender 通过UDP网络协议将日志写到Remote syslog service。</span><br><span class="line"></span><br><span class="line">RemotingAppender 通过.NET Remoting将日志写到远程接收端。</span><br><span class="line"></span><br><span class="line">RollingFileAppender 将日志以回滚文件的形式写到文件中。</span><br><span class="line"></span><br><span class="line">SmtpAppender 将日志写到邮件中。</span><br><span class="line"></span><br><span class="line">SmtpPickupDirAppender 将消息以文件的方式放入一个目录中，像IIS SMTP agent这样的SMTP代理就可以阅读或发送它们。</span><br><span class="line"></span><br><span class="line">TelnetAppender 客户端通过Telnet来接受日志事件。</span><br><span class="line"></span><br><span class="line">TraceAppender 将日志写到.NET trace 系统。</span><br><span class="line"></span><br><span class="line">UdpAppender 将日志以无连接UDP数据报的形式送到远程宿主或用UdpClient的形式广播。</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-2-Filters"><a href="#2-2-Filters" class="headerlink" title="2.2 Filters"></a><strong>2.2 Filters</strong></h4><p>使用过滤器可以过滤掉Appender输出的内容。过滤器通常有以下几种：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">DenyAllFilter 阻止所有的日志事件被记录</span><br><span class="line"></span><br><span class="line">LevelMatchFilter 只有指定等级的日志事件才被记录</span><br><span class="line"></span><br><span class="line">LevelRangeFilter 日志等级在指定范围内的事件才被记录</span><br><span class="line"></span><br><span class="line">LoggerMatchFilter 与Logger名称匹配，才记录</span><br><span class="line"></span><br><span class="line">PropertyFilter 消息匹配指定的属性值时才被记录</span><br><span class="line"></span><br><span class="line">StringMathFilter 消息匹配指定的字符串才被记录</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-3-Layouts"><a href="#2-3-Layouts" class="headerlink" title="2.3 Layouts"></a><strong>2.3 Layouts</strong></h4><p>Layout用于控制Appender的输出格式，可以是线性的也可以是XML。</p>
+<p>一个Appender只能有一个Layout。</p>
+<p>最常用的Layout应该是经典格式的PatternLayout，其次是SimpleLayout，RawTimeStampLayout和ExceptionLayout。然后还有IRawLayout，XMLLayout等几个，使用较少。Layout可以自己实现，需要从log4net.Layout.LayoutSkeleton类继承，来输出一些特殊需要的格式，在后面扩展时就重新实现了一个Layout。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">SimpleLayout 简单输出格式，只输出日志级别与消息内容。</span><br><span class="line"></span><br><span class="line">RawTimeStampLayout 用来格式化时间，在向数据库输出时会用到。样式如“yyyy-MM-dd HH:mm:ss“</span><br><span class="line"></span><br><span class="line">ExceptionLayout 需要给Logger的方法传入Exception对象作为参数才起作用，否则就什么也不输出。输出的时候会包含Message和Trace。</span><br><span class="line"></span><br><span class="line">PatternLayout 使用最多的一个Layout，能输出的信息很多，使用方式可参见上面例子中的配置文件。PatterLayout的格式化字符串见文后附注8.1。</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-4-Loggers"><a href="#2-4-Loggers" class="headerlink" title="2.4 Loggers"></a><strong>2.4 Loggers</strong></h4><p>Logger是直接和应用程序交互的组件。Logger只是产生日志，然后由它引用的Appender记录到指定的媒介，并由Layout控制输出格式。</p>
+<p>Logger提供了多种方式来记录一个日志消息，也可以有多个Logger同时存在。每个实例化的Logger对象对被log4net作为命名实体（Named Entity）来维护。log4net使用继承体系，也就是说假如存在两个Logger，名字分别为a.b.c和a.b。那么a.b就是a.b.c的祖先。每个Logger都继承了它祖先的属性。所有的Logger都从Root继承,Root本身也是一个Logger。</p>
+<p>日志的等级，它们由高到底分别为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OFF &amp;gt; FATAL &amp;gt; ERROR &amp;gt; WARN &amp;gt; INFO &amp;gt; DEBUG  &amp;gt; ALL</span><br></pre></td></tr></table></figure></p>
+<p>高于等级设定值方法（如何设置参见“配置文件详解”）都能写入日志， Off所有的写入方法都不写到日志里，ALL则相反。例如当我们设成Info时，logger.Debug就会被忽略而不写入文件，但是FATAL,ERROR,WARN,INFO会被写入，因为他们等级高于INFO。</p>
+<p>在具体写日志时，一般可以这样理解日志等级：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">FATAL（致命错误）：记录系统中出现的能使用系统完全失去功能，服务停止，系统崩溃等使系统无法继续运行下去的错误。例如，数据库无法连接，系统出现死循环。</span><br><span class="line"></span><br><span class="line">ERROR（一般错误）：记录系统中出现的导致系统不稳定，部分功能出现混乱或部分功能失效一类的错误。例如，数据字段为空，数据操作不可完成，操作出现异常等。</span><br><span class="line"></span><br><span class="line">WARN（警告）：记录系统中不影响系统继续运行，但不符合系统运行正常条件，有可能引起系统错误的信息。例如，记录内容为空，数据内容不正确等。</span><br><span class="line"></span><br><span class="line">INFO（一般信息）：记录系统运行中应该让用户知道的基本信息。例如，服务开始运行，功能已经开户等。</span><br><span class="line"></span><br><span class="line">DEBUG （调试信息）：记录系统用于调试的一切信息，内容或者是一些关键数据内容的输出。</span><br></pre></td></tr></table></figure></p>
+<p>Logger实现的ILog接口，ILog定义了5个方法（Debug,Inof,Warn,Error,Fatal）分别对不同的日志等级记录日志。这5个方法还有5个重载。以Debug为例说明一下，其它的和它差不多。</p>
+<p>ILog中对Debug方法的定义如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">void Debug(object message);</span><br><span class="line"></span><br><span class="line">void Debug(object message, Exception ex);</span><br></pre></td></tr></table></figure></p>
+<p>还有一个布尔属性：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">bool IsDebugEnabled &#123; get; &#125;</span><br></pre></td></tr></table></figure></p>
+<p>如果使用Debug(object message, Exception ex)，则无论Layout中是否定义了%exception，默认配置下日志都会输出Exception。包括Exception的Message和Trace。如果使用Debug(object message)，则日志是不会输出Exception。</p>
+<p>最后还要说一个LogManager类，它用来管理所有的Logger。它的GetLogger静态方法，可以获得配置文件中相应的Logger：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">log4net.ILog log = log4net.LogManager.GetLogger(&quot;logger-name&quot;);</span><br></pre></td></tr></table></figure></p>
+<h4 id="2-5-Object-Renders"><a href="#2-5-Object-Renders" class="headerlink" title="2.5 Object Renders"></a><strong>2.5 Object Renders</strong></h4><p>它将告诉logger如何把一个对象转化为一个字符串记录到日志里。（ILog中定义的接口接收的参数是Object，而不是String。）</p>
+<p>例如你想把Orange对象记录到日志中，但此时logger只会调用Orange默认的ToString方法而已。所以要定义一个OrangeRender类实现log4net.ObjectRender.IObjectRender接口，然后注册它（我们在本文中的扩展不使用这种方法，而是直接实现一个自定义的Layout）。这时logger就会知道如何把Orange记录到日志中了。</p>
+<h4 id="2-6-Repository"><a href="#2-6-Repository" class="headerlink" title="2.6 Repository"></a><strong>2.6 Repository</strong></h4><p>Repository主要用于日志对象组织结构的维护。</p>
+<h3 id="3-配置文件详解"><a href="#3-配置文件详解" class="headerlink" title="3.配置文件详解"></a>3.配置文件详解</h3><h4 id="3-1-配置文件构成"><a href="#3-1-配置文件构成" class="headerlink" title="3.1 配置文件构成"></a><strong>3.1 配置文件构成</strong></h4><p>主要有两大部分，一是申明一个名为“log4net“的自定义配置节，如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&amp;lt;configSections&amp;gt;</span><br><span class="line">    &amp;lt;section name=&quot;log4net&quot; type=&quot;log4net.Config.Log4NetConfigurationSectionHandler, log4net&quot; /&amp;gt;</span><br><span class="line">&amp;lt;/configSections&amp;gt;</span><br><span class="line">&amp;lt;log4net&amp;gt;</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">    ...</span><br><span class="line">&amp;lt;/log4net&amp;gt;</span><br></pre></td></tr></table></figure></p>
+<p>二是&lt;log4net&gt;节的具体配置，这是下面要重点说明的。</p>
+<h4 id="3-1-1-lt-log4net-gt"><a href="#3-1-1-lt-log4net-gt" class="headerlink" title="3.1.1 &lt;log4net&gt;"></a>3.1.1 &lt;log4net&gt;</h4><p>所有的配置都要在&lt;log4net&gt;元素里定义。</p>
+<p>支持的属性：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>debug</td>
+<td>可选，取值是true或false，默认是false。设置为true，开启log4net的内部调试。</td>
+</tr>
+<tr>
+<td>update</td>
+<td>可选，取值是Merge(合并)或Overwrite(覆盖)，默认值是Merge。设置为Overwrite，在提交配置的时候会重置已经配置过的库。</td>
+</tr>
+<tr>
+<td>threshold</td>
+<td>可选，取值是repository（库）中注册的level，默认值是ALL。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>支持的子元素：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>appender</td>
+<td style="text-align:center">0或多个</td>
+</tr>
+<tr>
+<td>logger</td>
+<td style="text-align:center">0或多个</td>
+</tr>
+<tr>
+<td>renderer</td>
+<td style="text-align:center">0或多个</td>
+</tr>
+<tr>
+<td>root</td>
+<td style="text-align:center">最多一个</td>
+</tr>
+<tr>
+<td>param</td>
+<td style="text-align:center">0或多个</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="3-1-2-lt-root-gt"><a href="#3-1-2-lt-root-gt" class="headerlink" title="3.1.2 &lt;root&gt;"></a>3.1.2 &lt;root&gt;</h4><p>实际上就是一个根logger，所有其它logger都默认继承它，如果配置文件里没有显式定义，则框架使用根日志中定义的属性。root元素没有属性。</p>
+<p>支持的子元素：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>appender-ref</td>
+<td style="text-align:center">0个或多个，要引用的appender的名字。</td>
+</tr>
+<tr>
+<td>level</td>
+<td style="text-align:center">最多一个。 只有在这个级别或之上的事件才会被记录。</td>
+</tr>
+<tr>
+<td>param</td>
+<td style="text-align:center">0个或多个， 设置一些参数。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="3-1-3-lt-logger-gt"><a href="#3-1-3-lt-logger-gt" class="headerlink" title="3.1.3 &lt;logger&gt;"></a>3.1.3 &lt;logger&gt;</h4><p>支持的属性：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td style="text-align:center">必须的，logger的名称</td>
+</tr>
+<tr>
+<td>additivity</td>
+<td style="text-align:center">可选，取值是true或false，默认值是true。设置为false时将阻止父logger中的appender。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>支持的子元素：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>appender-ref</td>
+<td style="text-align:center">0个或多个，要引用的appender的名字。</td>
+</tr>
+<tr>
+<td>level</td>
+<td style="text-align:center">最多一个。 只有在这个级别或之上的事件才会被记录。</td>
+</tr>
+<tr>
+<td>param</td>
+<td style="text-align:center">0个或多个， 设置一些参数。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="3-1-4-lt-appender-gt"><a href="#3-1-4-lt-appender-gt" class="headerlink" title="3.1.4 &lt;appender&gt;"></a>3.1.4 &lt;appender&gt;</h4><p>定义日志的输出方式，只能作为 log4net 的子元素。name属性必须唯一，type属性必须指定。</p>
+<p>支持的属性：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td style="text-align:center">必须的，Appender对象的名称</td>
+</tr>
+<tr>
+<td>type</td>
+<td style="text-align:center">必须的，Appender对象的输出类型</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>支持的子元素：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>appender-ref</td>
+<td style="text-align:center">0个或多个，允许此appender引用其他appender，并不是所以appender类型都支持。</td>
+</tr>
+<tr>
+<td>filter</td>
+<td style="text-align:center">0个或多个，定义此app使用的过滤器。</td>
+</tr>
+<tr>
+<td>layout</td>
+<td style="text-align:center">最多一个。定义appender使用的输出格式。</td>
+</tr>
+<tr>
+<td>param</td>
+<td style="text-align:center">0个或多个， 设置Appender类中对应的属性的值。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>实际上&lt;appender&gt;所能包含的子元素远不止上面4个。</p>
+<h4 id="3-1-5-lt-layout-gt"><a href="#3-1-5-lt-layout-gt" class="headerlink" title="3.1.5 &lt;layout&gt;"></a>3.1.5 &lt;layout&gt;</h4><p>布局，只能作为&lt;appender&gt;的子元素。</p>
+<p>支持的属性：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td style="text-align:center">必须的，Layout的类型</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>支持的子元素：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>param</td>
+<td style="text-align:center">0个或多个， 设置一些参数。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="3-1-6-lt-filter-gt"><a href="#3-1-6-lt-filter-gt" class="headerlink" title="3.1.6 &lt;filter&gt;"></a>3.1.6 &lt;filter&gt;</h4><p>过滤器，只能作为&lt;appender&gt;的子元素。</p>
+<p>支持的属性：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>type</td>
+<td style="text-align:center">必须的，Filter的类型</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>支持的子元素：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>param</td>
+<td style="text-align:center">0个或多个， 设置一些参数。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="3-1-7-lt-param-gt"><a href="#3-1-7-lt-param-gt" class="headerlink" title="3.1.7 &lt;param&gt;"></a>3.1.7 &lt;param&gt;</h4><p>&lt;param&gt;元素可以是任何元素的子元素。</p>
+<p>支持的属性：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>name</td>
+<td style="text-align:center">必须的，取值是父对象的参数名。</td>
+</tr>
+<tr>
+<td>value</td>
+<td style="text-align:center">可选的，value和type中，必须有一个属性被指定。value是一个能被转化为参数值的字符串。</td>
+</tr>
+<tr>
+<td>type</td>
+<td style="text-align:center">可选的，value和type中，必须有一个属性被指定。type是一个类型名，如果type不是在log4net程序集中定义的，就需要使用全名。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>支持的子元素：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th style="text-align:center">详解</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>param</td>
+<td style="text-align:center">0个或多个， 设置一些参数。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="4-关联配置文件"><a href="#4-关联配置文件" class="headerlink" title="4. 关联配置文件"></a>4. 关联配置文件</h3><p>log4net默认关联的是应用程序的配置文件App.config(BS程序是Web.config)，可以使用程序集自定义属性来进行设置。下面来介绍一下这个自定义属性：</p>
+<p>log4net.Config.XmlConifguratorAttribute</p>
+<p>XmlConfiguratorAttribute有3个属性：</p>
+<p>ConfigFile： 配置文件的名字，文件路径相对于应用程序目录</p>
+<p>(AppDomain.CurrentDomain.BaseDirectory)。ConfigFile属性不能和ConfigFileExtension属性一起使用。</p>
+<p>ConfigFileExtension： 配置文件的扩展名，文件路径相对于应用程序的目录。ConfigFileExtension属性不能和ConfigFile属性一起使用。</p>
+<p>Watch： 如果将Watch属性设置为true，就会监视配置文件。当配置文件发生变化的时候，就会重新加载。</p>
+<p>如果ConfigFile和ConfigFileExtension都没有设置，则使用应用程序的配置文件App.config（Web.config）。</p>
+<p>可以在项目的AssemblyInfo.cs文件里添加以下的语句：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">//监视默认的配置文件，App.config </span><br><span class="line">[assembly: log4net.Config.XmlConfigurator(Watch = true)]</span><br><span class="line"></span><br><span class="line">//使用配置文件log4net.config，不监视改变。注意log4net.config文件的目录，BS程序在站点目录//下，CS则在应用程序启动目录下，如调试时在/bin/Debug下，一般将文件属性的文件输出目录调为//始终复制即可</span><br><span class="line"></span><br><span class="line">[assembly: log4net.Config.XmlConfigurator(ConfigFile = &quot;log4net.config&quot;)]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">//使用配置文件log4net.config，不监视改变</span><br><span class="line"></span><br><span class="line">[assembly: log4net.Config.XmlConfigurator()]</span><br></pre></td></tr></table></figure>
+<p>也可以在Global.asax的Application_Start里或者是Program.cs中的Main方法中添加，注意这里一定是绝对路径，如下所示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">//这是在BS程序下，使用自定义的配置文件log4net.config，使用Server.MapPath(&quot;~&quot;) + //@&quot;/log4net.config”来取得路径。/log4net.config为相对于站点的路径</span><br><span class="line"></span><br><span class="line">// ConfigureAndWatch()相当于Configure(Watch = true)</span><br><span class="line"></span><br><span class="line">log4net.Config.XmlConfigurator.ConfigureAndWatch(new System.IO.FileInfo(Server.MapPath(&quot;~&quot;) + @&quot;/log4net.config&quot;));</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">//这是在CS程序下，可以用以下方法获得：</span><br><span class="line"></span><br><span class="line">string assemblyFilePath = Assembly.GetExecutingAssembly().Location;</span><br><span class="line"></span><br><span class="line">string assemblyDirPath = Path.GetDirectoryName(assemblyFilePath);</span><br><span class="line"></span><br><span class="line">string configFilePath = assemblyDirPath + &quot; //log4net.config&quot;;</span><br><span class="line"></span><br><span class="line">log4net.Config.XmlConfigurator.ConfigureAndWatch(new FileInfo(configFilePath));</span><br></pre></td></tr></table></figure>
+<p>或直接使用绝对路径：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//使用自定义的配置文件，直接绝对路径为：c:/log4net.config</span><br><span class="line"></span><br><span class="line">log4net.Config.XmlConfigurator.Configure(new System.IO.FileInfo(@&quot;c:/log4net.config&quot;));</span><br></pre></td></tr></table></figure></p>
+<p>&lt;/font&gt;</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2018/log/NET日志记录-log4net/" title=".NET日志记录-log4net">2018/log/NET日志记录-log4net/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/日志/" rel="tag"><i class="fa fa-tag"></i> 日志</a>
+          
+            <a href="/tags/log4net/" rel="tag"><i class="fa fa-tag"></i> log4net</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/技术实践/rabbitmq/RabbitMQ的使用思考篇/" rel="next" title="RabbitMQ的使用思考篇">
+                <i class="fa fa-chevron-left"></i> RabbitMQ的使用思考篇
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/log/NET下日志系统的搭建—log4net-kafka-elk/" rel="prev" title=".NET下日志系统的搭建—log4net+kafka+elk">
+                .NET下日志系统的搭建—log4net+kafka+elk <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-概述"><span class="nav-text">1.概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Log4net的主要组成部分"><span class="nav-text">2.Log4net的主要组成部分</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-Appenders"><span class="nav-text">2.1 Appenders</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-Filters"><span class="nav-text">2.2 Filters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-Layouts"><span class="nav-text">2.3 Layouts</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-Loggers"><span class="nav-text">2.4 Loggers</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-5-Object-Renders"><span class="nav-text">2.5 Object Renders</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-6-Repository"><span class="nav-text">2.6 Repository</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-配置文件详解"><span class="nav-text">3.配置文件详解</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-配置文件构成"><span class="nav-text">3.1 配置文件构成</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-1-lt-log4net-gt"><span class="nav-text">3.1.1 &lt;log4net&gt;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-2-lt-root-gt"><span class="nav-text">3.1.2 &lt;root&gt;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-3-lt-logger-gt"><span class="nav-text">3.1.3 &lt;logger&gt;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-4-lt-appender-gt"><span class="nav-text">3.1.4 &lt;appender&gt;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-5-lt-layout-gt"><span class="nav-text">3.1.5 &lt;layout&gt;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-6-lt-filter-gt"><span class="nav-text">3.1.6 &lt;filter&gt;</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-7-lt-param-gt"><span class="nav-text">3.1.7 &lt;param&gt;</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-关联配置文件"><span class="nav-text">4. 关联配置文件</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

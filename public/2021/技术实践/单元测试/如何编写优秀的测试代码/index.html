@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="无论如何组织测试,无论有多少测试,如果你不能信任、维护以及阅读它们,这些测试就几乎没有价值。要成为优秀的测试,它们应该同时具有如下三个属性。">
+<meta name="keywords" content="单元测试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="如何编写优秀的测试代码">
+<meta property="og:url" content="http://blog.laoyu.site/2021/技术实践/单元测试/如何编写优秀的测试代码/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="无论如何组织测试,无论有多少测试,如果你不能信任、维护以及阅读它们,这些测试就几乎没有价值。要成为优秀的测试,它们应该同时具有如下三个属性。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2021-03-21T08:32:27.843Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="如何编写优秀的测试代码">
+<meta name="twitter:description" content="无论如何组织测试,无论有多少测试,如果你不能信任、维护以及阅读它们,这些测试就几乎没有价值。要成为优秀的测试,它们应该同时具有如下三个属性。">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2021/技术实践/单元测试/如何编写优秀的测试代码/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>如何编写优秀的测试代码 | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+      <div class="main-inner">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2021/技术实践/单元测试/如何编写优秀的测试代码/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">如何编写优秀的测试代码
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2021-01-06 09:29:26" itemprop="dateCreated datePublished" datetime="2021-01-06T09:29:26+08:00">2021-01-06</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-21 16:32:27" itemprop="dateModified" datetime="2021-03-21T16:32:27+08:00">2021-03-21</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/单元测试/" itemprop="url" rel="index"><span itemprop="name">单元测试</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2021/技术实践/单元测试/如何编写优秀的测试代码/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2021/技术实践/单元测试/如何编写优秀的测试代码/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>无论如何组织测试,无论有多少测试,如果你不能信任、维护以及阅读它们,这些测试就几乎没有价值。要成为优秀的测试,它们应该同时具有如下三个属性。<br><a id="more"></a></p>
+<ol>
+<li><strong>可靠性**</strong>。**开发人员希望运行的測试可靠,能够对测试结果有信心。可靠的测试没有缺陷而且测试正确的事情</li>
+<li><strong>可维护</strong>。性无法维护的測试是梦,它们会拖延项目计划,或者当项目日程紧张时被搁置一旁。如果修改测试花费时间过多,或者经常需要为很小的产品代码频繁变更修改测试,开发人员会直接停止测试的维护和修复工作</li>
+<li><strong>可读性</strong>。人们不仅要能够阅读测试,还要在测试出问题时找出症结所在。失去可读性另外两个支柱很快也会倒塌。如果无法理解测试,测试的维护工作就会变得困难,也无法得到人们的信任。<h3 id="1-可靠性"><a href="#1-可靠性" class="headerlink" title="1. 可靠性"></a>1. 可靠性</h3><h4 id="1-1-及时维护测试代码"><a href="#1-1-及时维护测试代码" class="headerlink" title="1.1 及时维护测试代码"></a>1.1 及时维护测试代码</h4>测试代码与产品代码一样需要不断进行维护，一旦测试写好了并且通过了,通常是不应该修改或删除这些测试的。这些测试是你的保护网告诉你修改的代码是否破坏了已有的功能。虽说如此,有时可能还是需要修改或者删除已有的测试。要理解什么情况下修改或删除测试会带来问题,什么情况下这么做是合理的。<br>删除一个测试的主要的理由是这个测试失败了。如果一个测试突然开始失败,可能有如下原因</li>
+</ol>
+<ul>
+<li>产品缺陷    被测试的产品代码有缺陷。</li>
+<li>测试缺陷    测试中有缺陷。</li>
+<li>语义或者AP变更    被测试代码的语义发生变化,但是功能不变</li>
+<li>冲突或者无效的测试    和测试相关的产品需求发生变化,产品代码随之变更</li>
+</ul>
+<p>如果测试或代码没有任何问题,修改或删除测试的原因有:</p>
+<ul>
+<li>重命名或者重构测试</li>
+</ul>
+<p>不可读的测试带来的麻烦比解决的问题更多。它会影响代码的可读性,妨碍你理解测试发现的问题<br>如果你看到测试名含义不清或者令人误解,或者测试的可维护性有待提高,就应该修改测试代码(但是不要改变测试的基本功能)</p>
+<ul>
+<li>去除重复代码</li>
+</ul>
+<h4 id="1-2-避免测试代码中的逻辑"><a href="#1-2-避免测试代码中的逻辑" class="headerlink" title="1.2 避免测试代码中的逻辑"></a>1.2 避免测试代码中的逻辑</h4><p>如果单元测试中有下列任何一种语句,你的测试就包含了不应该有的逻辑:*</p>
+<ul>
+<li>switch、if或e1se语句;*</li>
+<li>foreach、for或whi1e循环。</li>
+</ul>
+<p>包含逻辑的测试通常会一次测试多个东西,我们不推荐这种做法,因为这样的测试可读性较也比较脆弱。而且测试逻辑也增加了代码复杂度,可能包含隐藏的缺陷通常来说,一个单元测试应该是一系列的方法调用和断言,但是不包含控制流语句,甚至不应将断言语句包含在try- catch中。任何更复杂的语句都可能导致如下问题。</p>
+<ul>
+<li>测试难以阅读和理解</li>
+<li>测试难以重现。(设想一下,如果一个多线程测试或者使用随机数的测试突然失败了,该如何处理。)</li>
+<li>测试较容易包含缺陷或者测试错误的事情</li>
+<li><p>难以命名测试,因为它执行多件任务</p>
+<h4 id="1-3-只测一个关注点"><a href="#1-3-只测一个关注点" class="headerlink" title="1.3 只测一个关注点"></a>1.3 只测一个关注点</h4><p>如前所述,一个关注点是一个工作单元的一个最终结果:一个返回值、系统状态的一个改变或者对第三方对象的一个调用。例如:如果你的单元测试对多个对象进行了断言,那么这个测试有可能测试了多个关注点。另一种情况是,它既测试了一个对象返回正确的值,又验证系统状态改变导致这个对象的行为发生变化,那么这个测试也可能测试了多个关注点。<br>测试多个关注点听起来没什么,但是等到你要命名测试,或者考虑第一个对象的断言失败该如何处理时,就会遇到问题。<br>命名测试看似简单,但是如果同时测试了多个东西,就几乎不可能给测试起一个能说明测试内容的好名字。你最后起的名字可能非常通用,使得读者不得不去阅读测试代码(本章的可读性节详细对此进行讨论)。如果一次只测试一个关注点,测试命名就很简单</p>
+<h4 id="1-4-单元测试与集成测试分离"><a href="#1-4-单元测试与集成测试分离" class="headerlink" title="1.4 单元测试与集成测试分离"></a>1.4 单元测试与集成测试分离</h4><p>把集成混在单元测试里放在测试项目中会导致很多方面的问题。这种测试难以运行,会让人们误以为代码有问题,浪费时间和精力进行检查,最后导致开发人员不再信任这组测试。混在单元测试里的集成测试就像筐里的烂苹果连累了其他的测试。如果下一次再发生类似的事情,开发人员甚至都不会去调查失败原因,直接就说:“哦,那个测试有时候就是会失败,没事的。”要避免这样的事情发生,就要建一个绿色安全区把集成测试和单元测试分开。<br>绿色安全区里只包含单元测试。运行绿色安全区里的所有测试测试结果应该全部是绿色的，如果有测试失败，就说明出现了真正的代码问题，而不是因为某些配置或外部依赖倒置的假警报。</p>
+<h4 id="1-5-代码审查与覆盖率结合"><a href="#1-5-代码审查与覆盖率结合" class="headerlink" title="1.5 代码审查与覆盖率结合"></a>1.5 代码审查与覆盖率结合</h4><p>代码覆盖率100%说明什么呢?如果没有做代码审查,这个覆盖率不能说明什么。你的团队可能会要求所有人的测试“达到95%以上的代码覆盖率”,大家可能也确实做到了。但是也许这些测试连断言都没有。人们通常会选择做最少的事情达到某个指定的目标。<br>那么代码覆盖率100%再加上测试和代码审查能说明什么呢?这说明整个世界都是你的。如果你做了代码审查和测试审查,确保测试优秀而且覆盖了所有代码,那么你就拥有了一个安全网,可以避免愚蠢的错误,同时团队也获得了分享的知识,从持续的学习中获益</p>
+<h3 id="2-可维护性"><a href="#2-可维护性" class="headerlink" title="2. 可维护性"></a>2. 可维护性</h3><h4 id="2-1-去除重复-Extract-Method"><a href="#2-1-去除重复-Extract-Method" class="headerlink" title="2.1 去除重复(Extract Method)"></a>2.1 去除重复(Extract Method)</h4><p>作为开发者,单元测试中的重复代码和产品代码中的重复一样(如果不是更加)有害。DRY原则应该同样适用于测试代码。重复代码意味测试对象某方面改变时要修改更多的测试代码。如果测试中有大量重复代码,构造函数变更或者使用类的语义变化会产生极大的影响</p>
+<h4 id="2-2-测试隔离"><a href="#2-2-测试隔离" class="headerlink" title="2.2 测试隔离"></a>2.2 测试隔离</h4><p>测试隔离的基本概念是:一个测试应该总是在它自己的小世界中运行,与其他进行类似或不同的工作的测试隔离甚至不知道其他测试的存在。<br>如果没有很好地隔离测试,它们会互相影响,使你非常悲惨,后悔在项目中尝试单元测试决心以后再也不做单元测试了。我见过这种情况。开发人员不愿费心检查测试中的问题,因此当出现问题时,需要花很多时间才能找到原因有些测试同样存在着一些坏味道能够提示测试隔离可能有问题。</p>
+</li>
+<li><p>强制的测试顺序    测试需要以某种特定顺序执行,或者需要来自其他测试结果的信息</p>
+</li>
+<li>隐藏的测试调用    测试调用其他测试。</li>
+<li>共享状态损坏    测试共享内存里的状态,却没有回滚状态。</li>
+<li>外部共享状态损坏    集成测试共享资源,却没有回滚资源。<h4 id="2-3-避免对不同的关注点多次断言-使用参数化测试"><a href="#2-3-避免对不同的关注点多次断言-使用参数化测试" class="headerlink" title="2.3 避免对不同的关注点多次断言(使用参数化测试)"></a>2.3 避免对不同的关注点多次断言(使用参数化测试)</h4><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Assert.AreEqual(<span class="number">2</span>,Sum(<span class="number">1</span>,<span class="number">2</span>));</span><br><span class="line">Assert.AreEqual(<span class="number">5</span>,Sum(<span class="number">2</span>,<span class="number">2</span>));</span><br><span class="line">Assert.AreEqual(<span class="number">6</span>,Sum(<span class="number">5</span>,<span class="number">2</span>));</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>如上示例，这个测试方法中使用了三个断言，进行了三个测试。这样看起来在实际过程中会节省一些写代码的时间，但会有一些问题。如果第一个断言失败，则后续断言就不会在执行。而在这个示例中我们是进行了三个测试。第一个断言失败就会导致我们无法得知另外两个测试的测试结果。对于这种情况我们可以采取别的方式进行测试</p>
+<ol>
+<li>给每个断言创建一个单独的测试</li>
+<li>使用参数化测试</li>
+<li>把断言代码放在一个try-catch块中</li>
+</ol>
+<h4 id="2-4-避免过度指定"><a href="#2-4-避免过度指定" class="headerlink" title="2.4 避免过度指定"></a>2.4 避免过度指定</h4><p>过度指定的测试对一个具体的被测试单元如何实现其内部行为进行了假设,而不是只检查其最终行为的正确性单元测试中过度指定主要有以下几种情况</p>
+<ul>
+<li>测试对一个被测试对象的纯内部状态进行了断言</li>
+<li>测试使用多个模拟对象</li>
+<li>测试在需要存根时使用模拟对象</li>
+<li>测试在不必要的情况下指定顺序或使用了精确匹配。</li>
+</ul>
+<h3 id="3-可读性"><a href="#3-可读性" class="headerlink" title="3. 可读性"></a>3. 可读性</h3><p>不可读的测试几乎没有任何意义。可读性这条线连接着编写测试的人和几个月后阅读测试的人。测试是你向项目的下一代开发者讲述的故事,帮助开发者理解一个应用程序的组成及其开端。<br>测试可读性有如下几个方面</p>
+<ul>
+<li>命名单元测试</li>
+<li>命名变量</li>
+<li>使用好的断言信息</li>
+<li><p>把断言和操作分离</p>
+<h4 id="3-1-单元测试命名"><a href="#3-1-单元测试命名" class="headerlink" title="3.1 单元测试命名"></a>3.1 单元测试命名</h4><p>命名标准非常重要,提供了合理的规则和模板,列出应该包括的测试信息。测试名一般包括三部分。</p>
+</li>
+<li><p><strong>被测试方法名    </strong>非常关键,指明了被测试逻辑的位置。把被测试方法名放在测试方法开头,可以很容易地在测试类中浏览测试和使用智能感知(如果IDE支持)</p>
+</li>
+<li><strong>测试场景</strong>     说明了测试使用的条件:“如果我用一个nu11值调用方法x,那么它应该执行Y。”</li>
+<li><strong>预期行为</strong>    基于当前场景,方法应该产生的行为结果或者返回值,或者行为方式:“如果用一个null值调用方法X,那么它应该执行Y。”如果测试名缺少上面列出的任何一部分,测试的读者就会疑惑测试究竟在做什么,需要阅读测试代码。合理地命名测试,主要目的就是为了使后来的开发者从为了理解测试而阅读代码的负担中解脱出来。<figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">IsValidFileName</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">[<span class="meta">Test</span>]</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">IsValidFileName_WhenPNG_ReturnFalse</span>(<span class="params"></span>)</span>&#123;</span><br><span class="line">	...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>如上示例，通过测试的方法命名我们就可以大概知道要测试的是方法是IsValidFileName当输入参数是PNG的时候，预期返回False。</p>
+<p>当然，你的团队也可以有适合自己的命名方式，但重要的是如果一个团队中都有统一的有意义命名规范，那么单元测试的可读性将大大提升，并且有利于后来者快速进入项目，理解测试。</p>
+<h4 id="3-2-变量命名"><a href="#3-2-变量命名" class="headerlink" title="3.2 变量命名"></a>3.2 变量命名</h4><p>测试中的变量命名和产品代码中的命名规范同样重要，通过合理的变量命名，我们可以确保阅读测试的人可以尽快的理解你要验证什么。<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 反例</span></span><br><span class="line">Assert.AreEqual(<span class="number">100</span>,actual);</span><br></pre></td></tr></table></figure></p>
+<p>如上示例，我们经常会看到测试中出现”100”这样的魔法数字。因为测试中没有描述性的名字，也许你在刚刚写完的时候还知道它是什么意思，但是一周后，一月后，一年后呢？甚至你未来的继任者看到这样的测试代码也是一头雾水。</p>
+<h4 id="3-4-断言和操作分离"><a href="#3-4-断言和操作分离" class="headerlink" title="3.4 断言和操作分离"></a>3.4 断言和操作分离</h4><p>很多人为了“偷懒”经常会把断言和方法调用卸载同一行里，但这是一个很不好的习惯，它会大大降低代码的可读性。<br><figure class="highlight csharp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 反例</span></span><br><span class="line">    Assert.AreEqual(<span class="literal">true</span>,fileManger.IsValidName())</span><br><span class="line"></span><br><span class="line"><span class="comment">// 正例</span></span><br><span class="line">    <span class="keyword">bool</span> expect=<span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">bool</span> actual=fileManger.IsValidName();</span><br><span class="line">    Assert.AreEqual(expect,actual)</span><br></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2021/技术实践/单元测试/如何编写优秀的测试代码/" title="如何编写优秀的测试代码">2021/技术实践/单元测试/如何编写优秀的测试代码/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/单元测试/" rel="tag"><i class="fa fa-tag"></i> 单元测试</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2021/技术实践/单元测试/单元测试基础/" rel="next" title="单元测试基础">
+                <i class="fa fa-chevron-left"></i> 单元测试基础
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2021/技术实践/单元测试/伪对象、桩对象、模拟对象/" rel="prev" title="伪对象、桩对象、模拟对象">
+                伪对象、桩对象、模拟对象 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-可靠性"><span class="nav-text">1. 可靠性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-及时维护测试代码"><span class="nav-text">1.1 及时维护测试代码</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-避免测试代码中的逻辑"><span class="nav-text">1.2 避免测试代码中的逻辑</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-只测一个关注点"><span class="nav-text">1.3 只测一个关注点</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-4-单元测试与集成测试分离"><span class="nav-text">1.4 单元测试与集成测试分离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-5-代码审查与覆盖率结合"><span class="nav-text">1.5 代码审查与覆盖率结合</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-可维护性"><span class="nav-text">2. 可维护性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-去除重复-Extract-Method"><span class="nav-text">2.1 去除重复(Extract Method)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-测试隔离"><span class="nav-text">2.2 测试隔离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-避免对不同的关注点多次断言-使用参数化测试"><span class="nav-text">2.3 避免对不同的关注点多次断言(使用参数化测试)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-4-避免过度指定"><span class="nav-text">2.4 避免过度指定</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-可读性"><span class="nav-text">3. 可读性</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#3-1-单元测试命名"><span class="nav-text">3.1 单元测试命名</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-2-变量命名"><span class="nav-text">3.2 变量命名</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3-4-断言和操作分离"><span class="nav-text">3.4 断言和操作分离</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>	
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

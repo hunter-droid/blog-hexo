@@ -1,0 +1,50 @@
+---
+
+title: ZINTERSTORE(zinterstore)
+copyright: true
+date: 2020-03-31 13:36:31
+categories: 
+- Redis命令大全
+- ZSet
+keywords: Redis命令,zinterstore
+aside: sorted_set
+
+---
+## ZINTERSTORE destination numkeys key [key ...] [WEIGHTS weight] [SUM|MIN|MAX] 
+>起始版本：2.0.0<br/>时间复杂度：O(N*K)+O(M*log(M)) 最坏情况，N是最小的输入排序集，K是输入排序集的个数，M是最终排序集的元素个数。
+
+
+#### 说明:
+* 计算给定的numkeys个有序集合的交集，并且把结果放到destination中。 在给定要计算的key和其它参数之前，必须先给定key个数(numberkeys)。
+* 默认情况下，结果中一个元素的分数是有序集合中该元素分数之和，前提是该元素在这些有序集合中都存在。因为交集要求其成员必须是给定的每个有序集合中的成员，结果集中的每个元素的分数和输入的有序集合个数相等。
+* 对于WEIGHTS和AGGREGATE参数的描述，参见命令ZUNIONSTORE。
+* 如果destination存在，就把它覆盖。
+
+#### 返回值
+
+
+**integer-reply**: 结果有序集合destination中元素个数。
+
+
+#### 示例
+
+```c
+redis> ZADD zset1 1 "one"
+(integer) 1
+redis> ZADD zset1 2 "two"
+(integer) 1
+redis> ZADD zset2 1 "one"
+(integer) 1
+redis> ZADD zset2 2 "two"
+(integer) 1
+redis> ZADD zset2 3 "three"
+(integer) 1
+redis> ZINTERSTORE out 2 zset1 zset2 WEIGHTS 2 3
+(integer) 2
+redis> ZRANGE out 0 -1 WITHSCORES
+1) "one"
+2) "5"
+3) "two"
+4) "10"
+redis> 
+```

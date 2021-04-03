@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="一、前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;前面我们已经初步实现了开发集成环境、测试环境的持续集成(自动化构建、自动化测试、自动化部署)。但生产环境自动化部署迟迟没有推进。其原因主要在以下几个方面:  尚未实现部署之前的自动化备份 尚未实现部署出现问题后的自动化回滚 由于之前采用FTP上传部署需要生产环境开放FTP端口存在安全性问题且FTP会因为各种的网速问题，导致站点瞬间挂掉  只要">
+<meta name="keywords" content="持续集成,Jenkins,自动化发布,自动化部署,.NET">
+<meta property="og:type" content="article">
+<meta property="og:title" content=".NET实现持续集成与自动化部署3-测试环境到生产环境策略">
+<meta property="og:url" content="http://blog.laoyu.site/2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="一、前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;前面我们已经初步实现了开发集成环境、测试环境的持续集成(自动化构建、自动化测试、自动化部署)。但生产环境自动化部署迟迟没有推进。其原因主要在以下几个方面:  尚未实现部署之前的自动化备份 尚未实现部署出现问题后的自动化回滚 由于之前采用FTP上传部署需要生产环境开放FTP端口存在安全性问题且FTP会因为各种的网速问题，导致站点瞬间挂掉  只要">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F3/wKgR6Vr-uJiAAWNJAAGzH04VEaI361.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-oHuAV0cyAAGa8kLPPek104.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-oPSAWrxrAAA084f8-fE141.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-o8iAUs6GAAFSPdUxR4A459.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-ol2AGhRPAAIRpLCLKyU487.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-otCAPdcXAAK5mBHFsQ4907.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-pOiAODw6AADdSdWn-5Y467.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-pOiAODw6AADdSdWn-5Y467.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EF/wKgR6Vr-pqyAYBBMAAD-3AmzeqA038.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EF/wKgR6Vr-qQ2AIlCVAABvoYcszKc472.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/EF/wKgR6Vr-qYGAMXQUAABmxXOUQsw465.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F0/wKgR6Vr-q_mAW2c7AAG4v5WRAgo962.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F0/wKgR6Vr-q_yAD07rAADt18hYFRc490.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F0/wKgR6Vr-rACAWacKAADN3fY9JCs868.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F1/wKgR6Vr-rquAaNfPAACQylX60q0644.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F3/wKgR6Vr-tu2AOR3ZAABUEIVOPVg241.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F1/wKgR6Vr-sHOAaY2wAABFNf6cB0U792.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F2/wKgR6Vr-sYSAfE-kAABAnVmx6ng732.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F2/wKgR6Vr-s1-ACsgMAAEgMDxv_aI903.png">
+<meta property="og:image" content="http://img.heshang365.com/group1/M00/05/F3/wKgR6Vr-s-KALO4lAAC2T8Sgrxk323.png">
+<meta property="og:updated_time" content="2021-03-14T03:04:50.698Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content=".NET实现持续集成与自动化部署3-测试环境到生产环境策略">
+<meta name="twitter:description" content="一、前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;前面我们已经初步实现了开发集成环境、测试环境的持续集成(自动化构建、自动化测试、自动化部署)。但生产环境自动化部署迟迟没有推进。其原因主要在以下几个方面:  尚未实现部署之前的自动化备份 尚未实现部署出现问题后的自动化回滚 由于之前采用FTP上传部署需要生产环境开放FTP端口存在安全性问题且FTP会因为各种的网速问题，导致站点瞬间挂掉  只要">
+<meta name="twitter:image" content="http://img.heshang365.com/group1/M00/05/F3/wKgR6Vr-uJiAAWNJAAGzH04VEaI361.png">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>.NET实现持续集成与自动化部署3-测试环境到生产环境策略 | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+	   <div class="main-inner main-inner-aside">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">.NET实现持续集成与自动化部署3-测试环境到生产环境策略
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-13 11:13:23" itemprop="dateCreated datePublished" datetime="2018-11-13T11:13:23+08:00">2018-11-13</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 11:04:50" itemprop="dateModified" datetime="2021-03-14T11:04:50+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/持续集成-Jenkins-自动化发布/" itemprop="url" rel="index"><span itemprop="name">持续集成&Jenkins&自动化发布</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;前面我们已经初步实现了开发集成环境、测试环境的持续集成(自动化构建、自动化测试、自动化部署)。但生产环境自动化部署迟迟没有推进。其原因主要在以下几个方面:</p>
+<ul>
+<li>尚未实现部署之前的自动化备份</li>
+<li>尚未实现部署出现问题后的自动化回滚</li>
+<li>由于之前采用FTP上传部署需要生产环境开放FTP端口存在安全性问题且FTP会因为各种的网速问题，导致站点瞬间挂掉</li>
+</ul>
+<p>只要解决以上三个问题，我们就可以初步实现生产环境的自动化部署。</p>
+<a id="more"></a>
+<h3 id="二、实现思路"><a href="#二、实现思路" class="headerlink" title="二、实现思路"></a>二、实现思路</h3><ol>
+<li>利用Jenkins分布式的特性，其中Jenkins服务器作为Master服务器，将生产环境(可以一台也可以多台服务器)作为Jenkins集群中的一台Slave服务器。</li>
+<li>测试环境应该模拟和生产环境的配置和编译版本保持是Release状态，且功能已经满足预期发布需求。</li>
+<li>通过文件复制插件，复制测试环境上的部署文件到生产环境上的jenkins工作空间。</li>
+<li>通过批处理处理不需要覆盖的文件或者临时要修改的配置等。</li>
+<li>利用rar备份生成环境上即将要覆盖的文件，注意命名上遵循一定规律：项目-文件夹-{BuildID}.bak.rar或日期-项目-文件夹-{BuildID}.bak.rar。</li>
+<li>利用批处理进行从jenkins工作空间上把文件复制到站点上，常用命令：xcopy。</li>
+<li>若生产环境程序出现问题，由项目经理和运维人员决定是紧急修复bug还是启用回滚，回滚则采用批处理命令将备份的文件压缩回生产环境站点下的目录内。</li>
+</ol>
+<p>通过以上策略可以实现测试环境到生产环境的一键部署，实现了部署前的自动化备份，出现问题的自动化回滚，利用Jenkins Master-Slave特性解决了需要开放FTP端口的的问题，并且将先在测试站点测试好的文件，复制到正式站点上的一个缓冲区，进行预热配置，之后在本机进行文件替换，速度是相当的快，解决了FTP上传过程中网络问题导致站点挂掉的问题。</p>
+<p>缺陷与问题:</p>
+<ol>
+<li>生产环境需作为Jenkins 集群中的一台服务器并承担一部分构建任务，但通过配置此问题可忽略不计</li>
+<li>生产环境需安装JDK并开启一个Java服务</li>
+<li>待发现</li>
+</ol>
+<h3 id="三、生产环境拓扑图"><a href="#三、生产环境拓扑图" class="headerlink" title="三、生产环境拓扑图"></a>三、生产环境拓扑图</h3><p><img src="http://img.heshang365.com/group1/M00/05/F3/wKgR6Vr-uJiAAWNJAAGzH04VEaI361.png" alt="image"></p>
+<h3 id="四、所需Jenkins插件"><a href="#四、所需Jenkins插件" class="headerlink" title="四、所需Jenkins插件"></a>四、所需Jenkins插件</h3><ol>
+<li>Copy data to workspace plugin 插件</li>
+<li>Copy Artifact Plugin</li>
+<li>Node and Label parameter plugin 插件</li>
+</ol>
+<h3 id="五、实现步骤"><a href="#五、实现步骤" class="headerlink" title="五、实现步骤"></a>五、实现步骤</h3><ol>
+<li>搭建slave</li>
+</ol>
+<p>1.1 Jenkins系统管理—&gt;管理节点—&gt;新建节点<br>!<img src="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-oHuAV0cyAAGa8kLPPek104.png" alt="image"><br><img src="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-oPSAWrxrAAA084f8-fE141.png" alt="image"></p>
+<p>1.2 输入节点名称，next，配置如下图<br><img src="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-o8iAUs6GAAFSPdUxR4A459.png" alt="image"></p>
+<p>其中，有如下几点需要注意：</p>
+<ul>
+<li><p>【# of executors】根据CPU的个数来填写数量</p>
+</li>
+<li><p>【远程工作目录】这个就是用来存放master到slave时，存放的临时目录，如slave的服务软件也会放在此，并且会以每个job名称来区分开</p>
+</li>
+<li><p>【用法】只需要选择【只允许运行绑定到这台机器的Job】这种模式下，Jenkins只会构建哪些分配到这台机器的Job。这允许一个节点专门保留给某种类型的Job。例如，在Jenkins上连续的执行测试，你可以设置执行者数量为1，那么同一时间就只会有一个构建，一个实行者不会阻止其它构建，其它构建会在另外的节点运行。通过这个配置生产环境就可以仅做自己的构建。</p>
+</li>
+<li><p>【启动方式】只需要选择【Launch agent via Java Web Start】，以服务的方式启动，应用最广且最好配置，其余的都太复杂，不建议使用。注意：2.x版本的默认没有这个选项，需要单独开启。其余的基本按照上面默认选择即可。</p>
+</li>
+</ul>
+<p>Launch agent via Java Web Start开启方式:</p>
+<p>Jenkins—&gt;系统管理—&gt;Configure Global Security—&gt;Agents—&gt;修改为随机选取<br><img src="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-ol2AGhRPAAIRpLCLKyU487.png" alt="image"><br><img src="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-otCAPdcXAAK5mBHFsQ4907.png" alt="image"></p>
+<p><img src="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-pOiAODw6AADdSdWn-5Y467.png" alt="image"></p>
+<p>1.3 点击保存后，master上已经配置好节点，那么接下来就是到节点的服务器上安装slave的服务：<br>点击右侧列表的节点服务器，此时节点并未连通。<br><img src="http://img.heshang365.com/group1/M00/05/EE/wKgR6Vr-pOiAODw6AADdSdWn-5Y467.png" alt="image"><br>进入详情页面，会提示你如何安装服务：<br><img src="http://img.heshang365.com/group1/M00/05/EF/wKgR6Vr-pqyAYBBMAAD-3AmzeqA038.png" alt="image"></p>
+<p><strong>注意:由于Slave服务为Java服务，因此Slave服务器上需安装JDK</strong></p>
+<p>当Slave服务器上出现以下服务时代表安装并连接成功<br><img src="http://img.heshang365.com/group1/M00/05/EF/wKgR6Vr-qQ2AIlCVAABvoYcszKc472.png" alt="image"><br>此时回到Jenkins 服务器上查看状态已经连接上<br><img src="http://img.heshang365.com/group1/M00/05/EF/wKgR6Vr-qYGAMXQUAABmxXOUQsw465.png" alt="image"></p>
+<p>说明:这里只介绍基于现有需求的一种策略，关于Jenkins Master-Slave连接机制与原理不多做介绍，网上关于这方面的介绍也很多，大家可以自行搜索。</p>
+<ol>
+<li>创建生产环境自动化部署任务<br> 2.1 参数化配置选择Slave构建<br> Jenkins 新建自由风格的软件项目<br> <img src="http://img.heshang365.com/group1/M00/05/F0/wKgR6Vr-q_mAW2c7AAG4v5WRAgo962.png" alt="image"><br> 参数化构建—&gt;添加参数—&gt;选择node<br> <img src="http://img.heshang365.com/group1/M00/05/F0/wKgR6Vr-q_yAD07rAADt18hYFRc490.png" alt="image"><br> 若没有此参数安装Node and Label parameter plugin 插件<br> 参数化配置可按下图进行，也可根据需要自行配置<br> <img src="http://img.heshang365.com/group1/M00/05/F0/wKgR6Vr-rACAWacKAADN3fY9JCs868.png" alt="image"></li>
+</ol>
+<p>2.2 文本复制<br>文本复制可选择两个插件</p>
+<p>Copy data to workspace plugin 插件 <br><br>可以复制Jenkins Master服务器的文件到Slave工作空间内<br>缺点:不支持参数化<br>Copy Artifact Plugin 插件 <br><br>可以实现Jenkins Slave-Slave Master-Slave之间的复制，可以将一个Job构建后的生成物复制到当前工作空间内<br>缺点:需再要复制的Job内内配置Archive the artifact</p>
+<p>可以根据所需自行选择插件，这里为了能够参数化我们选择Copy Artifact Plugin插件<br><img src="http://img.heshang365.com/group1/M00/05/F1/wKgR6Vr-rquAaNfPAACQylX60q0644.png" alt="image"><br>配置说明：</p>
+<ul>
+<li>Project name:要Copy的项目名称，这里可以使用参数化</li>
+<li>Which build:选择那一次构建后的产物，一般可以选择Latest successful build</li>
+<li>Stable build only:是否选择稳定的构建</li>
+<li>Artifacts to copy:要Copy的文件，可以进行规则匹配，如Test/<em>*/</em>,即Test文件夹下所有文件</li>
+<li>Artifacts not to copy：根据规则排除某些文件</li>
+<li>Target directory：本地工作空间的那个文件夹内</li>
+<li>Parameter filters：这里没用到，用到的话，可以自己看说明</li>
+</ul>
+<p>注意:这里需要前置Job配置<br><br>在要复制的Job内增加构建后操作如下图:<br><img src="http://img.heshang365.com/group1/M00/05/F3/wKgR6Vr-tu2AOR3ZAABUEIVOPVg241.png" alt="image"></p>
+<p>2.3 自动化备份<br>填写备份的批处理，这里可以使用WindowsRAR的压缩命令，所以如果要用RAR的时候，确保机器上已经安装WindowsRAR。注意名称必须要有规则且每次构建不能重复，因此可以使用项目名称+BuildID或者日期+项目名称+BuildID<br><img src="http://img.heshang365.com/group1/M00/05/F1/wKgR6Vr-sHOAaY2wAABFNf6cB0U792.png" alt="image"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">//自动备份批处理命令</span><br><span class="line">start c:\&quot;Program Files&quot;\winrar\rar.exe a -k -r -s -m1</span><br><span class="line">-ag&#123;HS.Shop.My-%BUILD_ID%.bak&#125;  &#123;要备份到的文件夹&#125; &#123;要备份的文件夹&#125;</span><br></pre></td></tr></table></figure></p>
+<p>2.4 覆盖站点目录下的文件<br>备份完成后将Jenkins工作空间下的文件复制到站点目录下，此时必须保证发布包已经排除掉了不需要覆盖的文件，并且是稳定可用的版本。批处理命令可采用xcopy命令。关于xcopy命令的使用可以自行百度<br><img src="http://img.heshang365.com/group1/M00/05/F2/wKgR6Vr-sYSAfE-kAABAnVmx6ng732.png" alt="image"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">xcopy  &#123;slave工作空间上的项目文件夹&#125; &#123;要复制到替换的文件夹&#125;  /Y/E</span><br></pre></td></tr></table></figure></p>
+<p>到了这一步就完成了生产环境的自动化部署的任务配置。点击构建即可完成测试环境到生产环境的一键部署。此时若程序出现问题可以采用紧急修复或者自动化回滚。</p>
+<ol>
+<li>创建生产环境自动化回滚任务</li>
+</ol>
+<p>3.1 同样新建一个自由风格的软件项目<br>这里可以配置两个构建参数<br><br>1.回滚哪一个项目的哪一次构建<br><br>2.回滚哪一台服务器的构建(可以多台)<br><br>参数化配置可见下图<br><img src="http://img.heshang365.com/group1/M00/05/F2/wKgR6Vr-s1-ACsgMAAEgMDxv_aI903.png" alt="image"></p>
+<p>3.2 自动化回滚批处理<br><img src="http://img.heshang365.com/group1/M00/05/F3/wKgR6Vr-s-KALO4lAAC2T8Sgrxk323.png" alt="image"><br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">Setlocal enabledelayedexpansion</span><br><span class="line">set &quot;projectKey=ChioceBuild&quot;</span><br><span class="line">set &quot;bakUrl=D:\HS.Shop.Bak\HS.Shop.My\&quot;  //备份文件的路径</span><br><span class="line">set url=&quot;%ChioceBuild%&quot;                  //参数</span><br><span class="line">set &quot;rollbackUrl=D:\&quot;</span><br><span class="line">set &quot;projectName=&quot;</span><br><span class="line">set &quot;buildID=&quot;</span><br><span class="line">set url=%url::=/%</span><br><span class="line">set url=%url:///=/%</span><br><span class="line">set url=%url://=/%</span><br><span class="line"></span><br><span class="line">for /f &quot;tokens=1,2,3,4,5,6,7,8* delims=/&quot; %%a in (%url%) do (</span><br><span class="line"> set &quot;projectName=%%g&quot;</span><br><span class="line"> set &quot;buildID=%%h&quot;</span><br><span class="line">)</span><br><span class="line">set projectName=!projectName:%projectKey%=!</span><br><span class="line">set &quot;fileName=&quot;</span><br><span class="line"></span><br><span class="line">for %%a in (%bakUrl%%projectName%-%buildID%.bak.rar) do (</span><br><span class="line"> set &quot;fileName=%%a&quot;</span><br><span class="line">)</span><br><span class="line">c:\&quot;Program Files&quot;\winrar\rar.exe x -ep2 -o+- %fileName% %rollbackUrl%</span><br></pre></td></tr></table></figure></p>
+<p>点击保存即可完成自动化回滚任务的建立，点击构建选择参数即可进行回滚。</p>
+<h3 id="六、结束语"><a href="#六、结束语" class="headerlink" title="六、结束语"></a>六、结束语</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;Jenkins是一个持续集成工具，其功能非常强大，可以帮助我们做自动构建、自动测试、自动发布等等，它根据不同的需求实现各种各样的功能，它可以最大幅度的减少我们日常工作中重复性的工作。以上仅仅是我根据当下所需研究的一种使用策略，可能有漏洞，也可能存在问题，但如果不愿意尝试着去改进现有流程，去接受新的东西，那么我们永远不会进步。而我对其使用的了解也不过是九牛一毛，大家可以根据需求研究制定自己的使用策略。<br><br>&nbsp;&nbsp;&nbsp;&nbsp;最后希望大家:即使搬砖，也要搬出艺术感!做一个有追求的搬砖者!<br>&lt;/font&gt;</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/" title=".NET实现持续集成与自动化部署3-测试环境到生产环境策略">2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/持续集成/" rel="tag"><i class="fa fa-tag"></i> 持续集成</a>
+          
+            <a href="/tags/Jenkins/" rel="tag"><i class="fa fa-tag"></i> Jenkins</a>
+          
+            <a href="/tags/自动化发布/" rel="tag"><i class="fa fa-tag"></i> 自动化发布</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/jenkins/NET实现持续集成与自动化部署2-NuGet/" rel="next" title=".NET实现持续集成与自动化部署2-NuGet">
+                <i class="fa fa-chevron-left"></i> .NET实现持续集成与自动化部署2-NuGet
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/" rel="prev" title="软件(敏捷)开发中工作量工时评估方法">
+                软件(敏捷)开发中工作量工时评估方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#一、前言"><span class="nav-text">一、前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、实现思路"><span class="nav-text">二、实现思路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、生产环境拓扑图"><span class="nav-text">三、生产环境拓扑图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#四、所需Jenkins插件"><span class="nav-text">四、所需Jenkins插件</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#五、实现步骤"><span class="nav-text">五、实现步骤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#六、结束语"><span class="nav-text">六、结束语</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

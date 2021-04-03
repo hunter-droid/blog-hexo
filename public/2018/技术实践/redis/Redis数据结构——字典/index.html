@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;字典在Redis中的应用非常广泛，数据库与哈希对象的底层实现就是字典。">
+<meta name="keywords" content="Redis,数据结构,链表">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Redis数据结构——字典">
+<meta property="og:url" content="http://blog.laoyu.site/2018/技术实践/redis/Redis数据结构——字典/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;字典在Redis中的应用非常广泛，数据库与哈希对象的底层实现就是字典。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/16747511.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/96951971.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/20232835.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/89123753.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/43712743.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/50308918.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/7685902.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/6383938.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/13728022.jpg">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/38258178.jpg">
+<meta property="og:updated_time" content="2021-03-14T03:04:50.721Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Redis数据结构——字典">
+<meta name="twitter:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;字典在Redis中的应用非常广泛，数据库与哈希对象的底层实现就是字典。">
+<meta name="twitter:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/16747511.jpg">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2018/技术实践/redis/Redis数据结构——字典/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Redis数据结构——字典 | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+	   <div class="main-inner main-inner-aside">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2018/技术实践/redis/Redis数据结构——字典/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">Redis数据结构——字典
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-20 16:15:39" itemprop="dateCreated datePublished" datetime="2018-11-20T16:15:39+08:00">2018-11-20</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 11:04:50" itemprop="dateModified" datetime="2021-03-14T11:04:50+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Redis/" itemprop="url" rel="index"><span itemprop="name">Redis</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/技术实践/redis/Redis数据结构——字典/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/技术实践/redis/Redis数据结构——字典/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;字典在Redis中的应用非常广泛，数据库与哈希对象的底层实现就是字典。</p>
+<a id="more"></a>
+<h3 id="一、复习散列表"><a href="#一、复习散列表" class="headerlink" title="一、复习散列表"></a>一、复习散列表</h3><h4 id="1-1-散列表"><a href="#1-1-散列表" class="headerlink" title="1.1 散列表"></a>1.1 散列表</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;散列表(哈希表)，其思想主要是基于数组支持按照下标随机访问数据时间复杂度为O(1)的特性。可是说是数组的一种扩展。假设，我们为了方便记录某高校数学专业的所有学生的信息。要求可以按照学号(学号格式为:入学时间+年级+专业+专业内自增序号，如2011 1101 0001)能够快速找到某个学生的信息。这个时候我们可以取学号的自增序号部分，即后四位作为数组的索引下标，把学生相应的信息存储到对应的空间内即可。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/16747511.jpg" alt="散列思想"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;如上图所示,我们把学号作为key,通过截取学号后四位的函数后计算后得到索引下标，将数据存储到数组中。当我们按照键值(学号)查找时，只需要再次计算出索引下标，然后取出相应数据即可。以上便是散列思想。</p>
+<h4 id="1-2-散列函数"><a href="#1-2-散列函数" class="headerlink" title="1.2 散列函数"></a>1.2 散列函数</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;上面的例子中，截取学号后四位的函数即是一个简单的散列函数。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">//散列函数 伪代码 </span><br><span class="line">int Hash(string key) &#123;</span><br><span class="line">  // 获取后四位字符</span><br><span class="line">  string hashValue =int.parse(key.Substring(key.Length-4, 4));</span><br><span class="line">  // 将后两位字符转换为整数</span><br><span class="line">  return hashValue;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在这里散列函数的作用就是讲key值映射成数组的索引下标。关于散列函数的设计方法有很多，如:直接寻址法、数字分析法、随机数法等等。但即使是再优秀的设计方法也不能避免散列冲突。在散列表中散列函数不应设计太复杂。</p>
+<h4 id="1-3-散列冲突"><a href="#1-3-散列冲突" class="headerlink" title="1.3 散列冲突"></a>1.3 散列冲突</h4><p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/96951971.jpg" alt></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;散列函数具有确定性和不确定性。</p>
+<ul>
+<li>确定性:哈希的散列值不同，那么哈希的原始输入也就不同。即:key1=key2,那么hash(key1)=hash(key2)。</li>
+<li>不确定性:同一个散列值很有可能对应多个不同的原始输入。即:key1≠key2，hash(key1)=hash(key2)。</li>
+</ul>
+<p>散列冲突,即key1≠key2，hash(key1)=hash(key2)的情况。散列冲突是不可避免的，如果我们key的长度为100，而数组的索引数量只有50，那么再优秀的算法也无法避免散列冲突。关于散列冲突也有很多解决办法，这里简单复习两种：开放寻址法和链表法。</p>
+<h5 id="1-3-1-开放寻址法"><a href="#1-3-1-开放寻址法" class="headerlink" title="1.3.1 开放寻址法"></a>1.3.1 开放寻址法</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;开放寻址法的核心思想是，如果出现了散列冲突，我们就重新探测一一个空闲位置，将其插入。比如，我们可以使用线性探测法。当我们往散列表中插入数据时，如果某个数据经过散列函数散列之后，存储位置已经被占用了，我们就从当前位置开始，依次往后查找，看是否有空闲位置，如果遍历到尾部都没有找到空闲的位置，那么我们就再从表头开始找，直到找到为止。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/20232835.jpg" alt="开放寻址法"></p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;散列表中查找元素的时候，我们通过散列函数求出要查找元素的键值对应的散列值，然后比较数组中下标为散列值的元素和要查找的元素。如果相等，则说明就是我们要找的元素；否则就顺序往后依次查找。如果遍历到数组中的空闲位置还没有找到，就说明要查找的元素并没有在散列表中。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;对于删除操作稍微有些特别，不能单纯地把要删除的元素设置为空。因为在查找的时候，一旦我们通过线性探测方法，找到一个空闲位置，我们就可以认定散列表中不存在这个数据。但是，如果这个空闲位置是我们后来删除的，就会导致原来的查找算法失效。这里我们可以将删除的元素，特殊标记为 deleted。当线性探测查找的时候，遇到标记为 deleted 的空间，并不是停下来，而是继续往下探测。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;线性探测法存在很大问题。当散列表中插入的数据越来越多时，其散列冲突的可能性就越大，极端情况下甚至要探测整个散列表,因此最坏时间复杂度为O(N)。在开放寻址法中，除了线性探测法，我们还可以二次探测和双重散列等方式。</p>
+<h5 id="1-3-2-链表法"><a href="#1-3-2-链表法" class="headerlink" title="1.3.2 链表法"></a>1.3.2 链表法</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;链表法是一种比较常用的散列冲突解决办法,Redis使用的就是链表法来解决散列冲突。链表法的原理是:如果遇到冲突，他就会在原地址新建一个空间，然后以链表结点的形式插入到该空间。当插入的时候，我们只需要通过散列函数计算出对应的散列槽位，将其插入到对应链表中即可。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-19/89123753.jpg" alt="链表法"></p>
+<h5 id="1-3-3-负载因子与rehash"><a href="#1-3-3-负载因子与rehash" class="headerlink" title="1.3.3 负载因子与rehash"></a>1.3.3 负载因子与rehash</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;我们可以使用装载因子来衡量散列表的“健康状况”。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">散列表的负载因子 = 填入表中的元素个数/散列表的长度</span><br></pre></td></tr></table></figure>
+<p>散列表负载因子越大，代表空闲位置越少，冲突也就越多，散列表的性能会下降。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;对于散列表来说，负载因子过大或过小都不好，负载因子过大，散列表的性能会下降。而负载因子过小，则会造成内存不能合理利用，从而形成内存浪费。因此我们为了保证负载因子维持在一个合理的范围内，要对散列表的大小进行收缩或扩展，即rehash。散列表的rehash过程类似于数组的收缩与扩容。</p>
+<h5 id="1-3-4-开放寻址法与链表法比较"><a href="#1-3-4-开放寻址法与链表法比较" class="headerlink" title="1.3.4 开放寻址法与链表法比较"></a>1.3.4 开放寻址法与链表法比较</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;对于开放寻址法解决冲突的散列表，由于数据都存储在数组中，因此可以有效地利用 CPU 缓存加快查询速度(数组占用一块连续的空间)。但是删除数据的时候比较麻烦，需要特殊标记已经删除掉的数据。而且，在开放寻址法中，所有的数据都存储在一个数组中，比起链表法来说，冲突的代价更高。所以，使用开放寻址法解决冲突的散列表，负载因子的上限不能太大。这也导致这种方法比链表法更浪费内存空间。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;对于链表法解决冲突的散列表,对内存的利用率比开放寻址法要高。因为链表结点可以在需要的时候再创建，并不需要像开放寻址法那样事先申请好。链表法比起开放寻址法，对大装载因子的容忍度更高。开放寻址法只能适用装载因子小于1的情况。接近1时，就可能会有大量的散列冲突，性能会下降很多。但是对于链表法来说，只要散列函数的值随机均匀，即便装载因子变成10，也就是链表的长度变长了而已，虽然查找效率有所下降，但是比起顺序查找还是快很多。但是，链表因为要存储指针，所以对于比较小的对象的存储，是比较消耗内存的，而且链表中的结点是零散分布在内存中的，不是连续的，所以对CPU缓存是不友好的，这对于执行效率有一定的影响。</p>
+<h3 id="二、Redis字典"><a href="#二、Redis字典" class="headerlink" title="二、Redis字典"></a>二、Redis字典</h3><h4 id="2-1-Redis字典的实现"><a href="#2-1-Redis字典的实现" class="headerlink" title="2.1 Redis字典的实现"></a>2.1 Redis字典的实现</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;Redis字典使用散列表最为底层实现，一个散列表里面有多个散列表节点，每个散列表节点就保存了字典中的一个键值对。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/43712743.jpg" alt></p>
+<h5 id="2-1-1-字典"><a href="#2-1-1-字典" class="headerlink" title="2.1.1 字典"></a>2.1.1 字典</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dict</span>&#123;</span></span><br><span class="line">         <span class="comment">//类型特定函数</span></span><br><span class="line">         <span class="keyword">void</span> *type;</span><br><span class="line">         <span class="comment">//私有数据</span></span><br><span class="line">         <span class="keyword">void</span> *privdata;</span><br><span class="line">         <span class="comment">//哈希表-见2.1.2</span></span><br><span class="line">         dictht ht[<span class="number">2</span>];</span><br><span class="line">         <span class="comment">//rehash 索引 当rehash不在进行时 值为-1</span></span><br><span class="line">         <span class="keyword">int</span> trehashidx; </span><br><span class="line">&#125;dict;</span><br></pre></td></tr></table></figure>
+<p>type属性和privdata属性是针对不同类型的键值对，为创建多态字典而设置的。</p>
+<ul>
+<li>type属性是一个指向dictType结构的指针，每个dictType用于操作特定类型键值对的函数，Redis会为用途不同的字典设置不同的类型特定函数。</li>
+<li>privdata属性则保存了需要传给给那些类型特定函数的可选参数。</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">typedef struct dictType</span><br><span class="line">&#123;</span><br><span class="line">         //计算哈希值的函数 </span><br><span class="line">         unsigned int  (*hashFunction) (const void *key);</span><br><span class="line">         //复制键的函数</span><br><span class="line">         void *(*keyDup) (void *privdata,const void *key);</span><br><span class="line">         //复制值的函数</span><br><span class="line">         void *(*keyDup) (void *privdata,const void *obj);</span><br><span class="line">          //复制值的函数</span><br><span class="line">         void *(*keyCompare) (void *privdata,const void *key1, const void *key2);</span><br><span class="line">         //销毁键的函数</span><br><span class="line">         void (*keyDestructor) (void *privdata, void *key);</span><br><span class="line">         //销毁值的函数</span><br><span class="line">         void (*keyDestructor) (void *privdata, void *obj);</span><br><span class="line">&#125;dictType;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>ht属性是一个包含两个项的数组，数组中的每个项都是一个dictht哈希表， 一般情况下，字典只使用ht[0] 哈希表, ht[1]哈希表只会对ht[0]哈希表进行rehash时使用。</li>
+<li>rehashidx记录了rehash目前的进度，如果目前没有进行rehash，值为-1。</li>
+</ul>
+<h5 id="2-1-2-散列表"><a href="#2-1-2-散列表" class="headerlink" title="2.1.2 散列表"></a>2.1.2 散列表</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dictht</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">         <span class="comment">//哈希表数组，C语言中，*号是为了表明该变量为指针，有几个* 号就相当于是几级指针，这里是二级指针，理解为指向指针的指针</span></span><br><span class="line">         dictEntry **table;</span><br><span class="line">         <span class="comment">//哈希表大小</span></span><br><span class="line">         <span class="keyword">unsigned</span> <span class="keyword">long</span> size;</span><br><span class="line">         <span class="comment">//哈希表大小掩码，用于计算索引值</span></span><br><span class="line">         <span class="keyword">unsigned</span> <span class="keyword">long</span> sizemask;</span><br><span class="line">         <span class="comment">//该哈希已有节点的数量</span></span><br><span class="line">         <span class="keyword">unsigned</span> <span class="keyword">long</span> used;</span><br><span class="line">&#125;dictht;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>table属性是一个数组，数组中的每个元素都是一个指向dict.h/dictEntry结构的指针，每个dictEntry结构保存着一个键值对</li>
+<li>size属性记录了哈希表的大小，也是table数组的大小</li>
+<li>used属性则记录哈希表目前已有节点(键值对)的数量</li>
+<li>sizemask属性的值总是等于 size-1(从0开始)，这个属性和哈希值一起决定一个键应该被放到table数组的哪个索引上面（索引下标值）。</li>
+</ul>
+<h5 id="2-1-3-散列表节点"><a href="#2-1-3-散列表节点" class="headerlink" title="2.1.3 散列表节点"></a>2.1.3 散列表节点</h5><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//哈希表节点定义dictEntry结构表示，每个dictEntry结构都保存着一个键值对。</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">dictEntry</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">         <span class="comment">//键</span></span><br><span class="line">         <span class="keyword">void</span> *key;</span><br><span class="line">         <span class="comment">//值</span></span><br><span class="line">         <span class="keyword">union</span>&#123;</span><br><span class="line">           <span class="keyword">void</span> *val;</span><br><span class="line">            uint64_tu64;</span><br><span class="line">            int64_ts64;</span><br><span class="line">            &#125;v;</span><br><span class="line">         <span class="comment">// 指向下个哈希表节点，形成链表</span></span><br><span class="line">         <span class="class"><span class="keyword">struct</span> <span class="title">dictEntry</span> *<span class="title">next</span>;</span></span><br><span class="line">&#125;dictEntry;</span><br></pre></td></tr></table></figure>
+<p>key属性保存着键值中的键，而v属性则保存着键值对中的值，其中键值(v属性)可以是一个指针，或uint64_t整数，或int64_t整数。 next属性是指向另一个哈希表节点的指针，这个指针可以将多个哈希值相同的键值对连接在一起，解决键冲突问题。</p>
+<h4 id="2-2-Redis如何解决散列冲突"><a href="#2-2-Redis如何解决散列冲突" class="headerlink" title="2.2 Redis如何解决散列冲突"></a>2.2 Redis如何解决散列冲突</h4><h5 id="2-2-1-链表法"><a href="#2-2-1-链表法" class="headerlink" title="2.2.1 链表法"></a>2.2.1 链表法</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;当有两个或以上的键被分配到散列表数组同一个索引上时，就发生了键冲突。Redis使用链表法解决散列冲突。每个散列表节点都有一个next指针，多个散列表节点next可以用next指针构成一个单向链表，被分配到同一个索引上的多个节点可以使用这个单向链表连接起来。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/50308918.jpg" alt="Redis 链表法"></p>
+<p>如图所示,当键k0和k1的经过散列函数得到索引值都为1时，就会使用next指针将两个节点连接起来。而由于节点没有指向链尾的指针，因此新的节点总是插入到链表的头部，排在已有节点的前面。</p>
+<h5 id="2-2-2-Redis-rehash"><a href="#2-2-2-Redis-rehash" class="headerlink" title="2.2.2 Redis rehash"></a>2.2.2 Redis rehash</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;随着操作的进行，散列表中保存的键值对会也会不断地增加或减少，为了保证负载因子维持在一个合理的范围，当散列表内的键值对过多或过少时，内需要定期进行rehash，以提升性能或节省内存。Redis的rehash的步骤如下:</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/7685902.jpg" alt></p>
+<ol>
+<li><p>为字典的ht[1]散列表分配空间，这个空间的大小取决于要执行的操作以及ht[0]当前包含的键值对数量(即:ht[0].used的属性值)</p>
+<ul>
+<li>扩展操作：ht[1]的大小为 第一个大于等于ht[0].used*2的2的n次方幂。如:ht[0].used=3则ht[1]的大小为8，ht[0].used=4则ht[1]的大小为8。</li>
+<li>收缩操作: ht[1]的大小为 第一个大于等于ht[0].used的2的n次方幂。</li>
+</ul>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/6383938.jpg" alt></p>
+</li>
+<li><p>将保存在ht[0]中的键值对重新计算键的散列值和索引值，然后放到ht[1]指定的位置上。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/13728022.jpg" alt></p>
+</li>
+<li><p>将ht[0]包含的所有键值对都迁移到了ht[1]之后，释放ht[0],将ht[1]设置为ht[0],并创建一个新的ht[1]哈希表为下一次rehash做准备。</p>
+<p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-20/38258178.jpg" alt></p>
+</li>
+</ol>
+<p><strong>rehash操作需要满足以下条件:</strong></p>
+<ol>
+<li>服务器目前没有执行BGSAVE(rdb持久化)命令或者BGREWRITEAOF(AOF文件重写)命令，并且散列表的负载因子大于等于1。</li>
+<li>服务器目前正在执行BGSAVE命令或者BGREWRITEAOF命令，并且负载因子大于等于5。</li>
+<li>当负载因子小于0.1时，程序自动开始执行收缩操作。</li>
+</ol>
+<p>Redis这么做的目的是基于操作系统创建子进程后写时复制技术，避免不必要的写入操作。(有关BGSAVE、BGREWRITEAOF以及写时复制会在后续持久化一文详细介绍)。</p>
+<h5 id="2-2-3-渐进式-rehash"><a href="#2-2-3-渐进式-rehash" class="headerlink" title="2.2.3 渐进式 rehash"></a>2.2.3 渐进式 rehash</h5><p>&nbsp;&nbsp;&nbsp;&nbsp;对于rehash我们思考一个问题如果散列表当前大小为 1GB，要想扩容为原来的两倍大小，那就需要对 1GB 的数据重新计算哈希值，并且从原来的散列表搬移到新的散列表。这种情况听着就很耗时，而生产环境中甚至会更大。为了解决一次性扩容耗时过多的情况，可以将扩容操作穿插在插入操作的过程中，分批完成。当负载因子触达阈值之后，只申请新空间，但并不将老的数据搬移到新散列表中。当有新数据要插入时，将新数据插入新散列表中，并且从老的散列表中拿出一个数据放入到新散列表。每次插入一个数据到散列表，都重复上面的过程。经过多次插入操作之后，老的散列表中的数据就一点一点全部搬移到新散列表中了。这样没有了集中的一次一次性数据搬移，插入操作就都变得很快了。</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;Redis为了解决这个问题采用渐进式rehash方式。以下是Redis渐进式rehash的详细步骤:</p>
+<ol>
+<li>为 <code>ht[1]</code> 分配空间， 让字典同时持有 <code>ht[0]</code> 和 <code>ht[1]</code> 两个哈希表。</li>
+<li>在字典中维持一个索引计数器变量 <code>rehashidx</code> ， 并将它的值设置为 <code>0</code> ，表示 rehash 工作正式开始。</li>
+<li>在 rehash 进行期间， 每次对字典执行添加、删除、查找或者更新操作时， 程序除了执行指定的操作以外， 还会顺带将 <code>ht[0]</code> 哈希表在 <code>rehashidx</code> 索引上的所有键值对 rehash 到 <code>ht[1]</code> ， 当 rehash 工作完成之后， 程序将 <code>rehashidx</code> 属性的值增一。</li>
+<li>随着字典操作的不断执行， 最终在某个时间点上， <code>ht[0]</code> 的所有键值对都会被 rehash 至 <code>ht[1]</code> ， 这时程序将 <code>rehashidx</code> 属性的值设为 <code>-1</code> ， 表示 rehash 操作已完成。</li>
+</ol>
+<p><strong>说明: </strong></p>
+<p><strong>1.因为在进行渐进式 rehash 的过程中，字典会同时使用 <code>ht[0]</code> 和 <code>ht[1]</code> 两个哈希表，所以在渐进式 rehash 进行期间，字典的删除（delete）、查找（find）、更新（update）等操作会在两个哈希表上进行。</strong></p>
+<p><strong>2. 在渐进式 rehash 执行期间，新添加到字典的键值对一律会被保存到 <code>ht[1]</code> 里面，而 <code>ht[0]</code> 则不再进行任何添加操作：这一措施保证了 <code>ht[0]</code> 包含的键值对数量会只减不增，并随着 rehash 操作的执行而最终变成空表。</strong></p>
+<h4 id="2-3-时间复杂度"><a href="#2-3-时间复杂度" class="headerlink" title="2.3 时间复杂度"></a>2.3 时间复杂度</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;下面给出几个Redis字典常见操作的时间复杂度，可以结合上面的内容分析为什么。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>时间复杂度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>创建一个新字典</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>将给定的键值对添加到字典内</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>将给定的键值对添加到字典内，如果键存在则替换之</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>返回给定键的值</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>从字典中随机返回一个键值对</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>从字典中删除给定键所对应的键值对</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>释放给定字典以及字典中包含的键值对</td>
+<td>O(N)，N为字典包含的键值对的数量</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="本文重点"><a href="#本文重点" class="headerlink" title="本文重点"></a>本文重点</h3><ol>
+<li>字典在redis中广泛应用，包括数据库和hash数据结构。</li>
+<li>每个字典有两个哈希表，一个是正常使用，一个用于rehash期间使用。</li>
+<li>当redis计算哈希时，采用的是MurmurHash2哈希算法。</li>
+<li>哈希表采用链表法解决散列冲突，被分配到同一个地址的键会构成一个单向链表。</li>
+<li>在rehash对哈希表进行扩展或者收缩过程中，会将所有键值对进行迁移，并且这个迁移是渐进式的迁移。</li>
+</ol>
+<h3 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;本篇文章主要回顾了散列表的概念，散列函数以及如何解决散列冲突。并分析了Redis中字典的实现。下篇文章将介绍跳跃表以及跳跃表在Redis中的实现。</p>
+<h3 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h3><p>《Redis设计与实现》</p>
+<p>《Redis开发与运维》</p>
+<p>《Redis官方文档》</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2018/技术实践/redis/Redis数据结构——字典/" title="Redis数据结构——字典">2018/技术实践/redis/Redis数据结构——字典/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Redis/" rel="tag"><i class="fa fa-tag"></i> Redis</a>
+          
+            <a href="/tags/数据结构/" rel="tag"><i class="fa fa-tag"></i> 数据结构</a>
+          
+            <a href="/tags/散列表/" rel="tag"><i class="fa fa-tag"></i> 散列表</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/技术实践/redis/Redis数据结构——链表/" rel="next" title="Redis数据结构——链表">
+                <i class="fa fa-chevron-left"></i> Redis数据结构——链表
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/技术实践/redis/Redi数据结构——跳跃表/" rel="prev" title="Redis数据结构——跳跃表">
+                Redis数据结构——跳跃表 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一、复习散列表"><span class="nav-text">一、复习散列表</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-散列表"><span class="nav-text">1.1 散列表</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-散列函数"><span class="nav-text">1.2 散列函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-散列冲突"><span class="nav-text">1.3 散列冲突</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-1-开放寻址法"><span class="nav-text">1.3.1 开放寻址法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-2-链表法"><span class="nav-text">1.3.2 链表法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-3-负载因子与rehash"><span class="nav-text">1.3.3 负载因子与rehash</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#1-3-4-开放寻址法与链表法比较"><span class="nav-text">1.3.4 开放寻址法与链表法比较</span></a></li></ol></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、Redis字典"><span class="nav-text">二、Redis字典</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-Redis字典的实现"><span class="nav-text">2.1 Redis字典的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-1-字典"><span class="nav-text">2.1.1 字典</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-2-散列表"><span class="nav-text">2.1.2 散列表</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-1-3-散列表节点"><span class="nav-text">2.1.3 散列表节点</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-Redis如何解决散列冲突"><span class="nav-text">2.2 Redis如何解决散列冲突</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-1-链表法"><span class="nav-text">2.2.1 链表法</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-2-Redis-rehash"><span class="nav-text">2.2.2 Redis rehash</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-2-3-渐进式-rehash"><span class="nav-text">2.2.3 渐进式 rehash</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-时间复杂度"><span class="nav-text">2.3 时间复杂度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#本文重点"><span class="nav-text">本文重点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#小结"><span class="nav-text">小结</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#参考"><span class="nav-text">参考</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>

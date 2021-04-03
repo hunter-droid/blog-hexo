@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-CN">
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+  
+  
+    
+    
+  <script src="/lib/pace/pace.min.js?v=1.0.2"></script>
+  <link href="/lib/pace/pace-theme-minimal.min.css?v=1.0.2" rel="stylesheet">
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform">
+<meta http-equiv="Cache-Control" content="no-siteapp">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css">
+
+<link href="/css/main.css?v=6.5.0" rel="stylesheet" type="text/css">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.jpg?v=6.5.0">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.jpg?v=6.5.0">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=6.5.0" color="#222">
+
+
+
+<link rel="manifest" href="/manifest.json">
+
+
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '6.5.0',
+    sidebar: {"position":"left","display":"post","offset":12,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+
+  <meta name="description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;软件开发中如何合理的预估项目的开发时间始终是一个难题。因为项目中不确定性的因素太多。这里我们根据日常项目中开发的规律总结出一种工作量预估的模型。该模型参考物理学中时间的计算方式:  时间(T)=\frac {距离(S)}{速度(V)}得到我们的软件开发时间计算公式:  开发时间(T)=\frac {工作量(S)}{开发速度(V)}">
+<meta name="keywords" content="敏捷开发,项目管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="软件(敏捷)开发中工作量工时评估方法">
+<meta property="og:url" content="http://blog.laoyu.site/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/index.html">
+<meta property="og:site_name" content="尽于生">
+<meta property="og:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;软件开发中如何合理的预估项目的开发时间始终是一个难题。因为项目中不确定性的因素太多。这里我们根据日常项目中开发的规律总结出一种工作量预估的模型。该模型参考物理学中时间的计算方式:  时间(T)=\frac {距离(S)}{速度(V)}得到我们的软件开发时间计算公式:  开发时间(T)=\frac {工作量(S)}{开发速度(V)}">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-9-17/79849907.jpg">
+<meta property="og:updated_time" content="2021-03-14T03:04:50.725Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="软件(敏捷)开发中工作量工时评估方法">
+<meta name="twitter:description" content="前言&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;软件开发中如何合理的预估项目的开发时间始终是一个难题。因为项目中不确定性的因素太多。这里我们根据日常项目中开发的规律总结出一种工作量预估的模型。该模型参考物理学中时间的计算方式:  时间(T)=\frac {距离(S)}{速度(V)}得到我们的软件开发时间计算公式:  开发时间(T)=\frac {工作量(S)}{开发速度(V)}">
+<meta name="twitter:image" content="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-9-17/79849907.jpg">
+
+
+
+  <link rel="alternate" href="/atom.xml" title="尽于生" type="application/atom+xml">
+
+
+
+
+  <link rel="canonical" href="http://blog.laoyu.site/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/">
+
+
+
+<script type="text/javascript" id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>软件(敏捷)开发中工作量工时评估方法 | 尽于生</title>
+  
+
+
+
+
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?f25233ac0be80da381b974833e89c4ac";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  <noscript>
+  <style type="text/css">
+    .use-motion .motion-element,
+    .use-motion .brand,
+    .use-motion .menu-item,
+    .sidebar-inner,
+    .use-motion .post-block,
+    .use-motion .pagination,
+    .use-motion .comments,
+    .use-motion .post-header,
+    .use-motion .post-body,
+    .use-motion .collection-title { opacity: initial; }
+
+    .use-motion .logo,
+    .use-motion .site-title,
+    .use-motion .site-subtitle {
+      opacity: initial;
+      top: initial;
+    }
+
+    .use-motion {
+      .logo-line-before i { left: initial; }
+      .logo-line-after i { right: initial; }
+    }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-CN">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">尽于生</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="切换导航栏">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>首页</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>关于</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>标签</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>分类</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>归档</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-sitemap">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i> <br>站点地图</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+    
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+	  
+      <div class="main-inner">	  
+        <div class="content-wrap">
+          
+          <div id="content" class="content">
+            
+
+ <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://blog.laoyu.site/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="尽于生">
+      <meta itemprop="description" content="时光不语，静待花开！">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="尽于生">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">软件(敏捷)开发中工作量工时评估方法
+              
+            
+          </h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+
+              
+                
+              
+
+              <time title="创建时间：2018-11-14 08:58:01" itemprop="dateCreated datePublished" datetime="2018-11-14T08:58:01+08:00">2018-11-14</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">更新于</span>
+                
+                <time title="修改时间：2021-03-14 11:04:50" itemprop="dateModified" datetime="2021-03-14T11:04:50+08:00">2021-03-14</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">分类于</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/项目管理/" itemprop="url" rel="index"><span itemprop="name">项目管理</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/#comments" itemprop="discussionUrl">
+                  <span class="post-meta-item-text">评论数：</span> <span class="post-comments-count valine-comment-count" data-xid="/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+            <span class="post-meta-divider">|</span>
+            <span class="post-meta-item-icon">
+            <i class="fa fa-eye"></i>
+             阅读次数： 
+            <span class="busuanzi-value" id="busuanzi_value_page_pv"></span>
+            </span>
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;软件开发中如何合理的预估项目的开发时间始终是一个难题。因为项目中不确定性的因素太多。这里我们根据日常项目中开发的规律总结出一种工作量预估的模型。该模型参考物理学中时间的计算方式:</p>
+<script type="math/tex; mode=display">
+时间(T)=\frac {距离(S)}{速度(V)}</script><p>得到我们的软件开发时间计算公式:</p>
+<script type="math/tex; mode=display">
+开发时间(T)=\frac {工作量(S)}{开发速度(V)}</script><a id="more"></a>
+<h3 id="一、工作量的确定"><a href="#一、工作量的确定" class="headerlink" title="一、工作量的确定"></a>一、工作量的确定</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;工作量主要与三方面的因素有关系。任务的规模、任务的复杂度以及完成该任务的人员能力水平。这里我们先假设一个标准的人员水平(即：理想状态下人员水平都是一定的标准工程师)。那么此时工作量主要与任务的规模与任务的复杂度有关系。</p>
+<h4 id="1-1-任务规模-S"><a href="#1-1-任务规模-S" class="headerlink" title="1.1 任务规模(S)"></a>1.1 任务规模(S)</h4><p> 关于任务的规模拆分出如下等级。(我们可以总结自己项目的规律来调整这个等级)：</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>级别</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>任务规模极其之大，甚至不能估计，可以拆分成很多小任务，甚至子工程。</td>
+</tr>
+<tr>
+<td>4</td>
+<td>任务规模较大，需要一周左右的时间来完成，可以拆分成很多小任务</td>
+</tr>
+<tr>
+<td>3</td>
+<td>中等规模的任务，需要三到五天左右的工作量</td>
+</tr>
+<tr>
+<td>2</td>
+<td>任务小，需要两到三天左右的工作量</td>
+</tr>
+<tr>
+<td>1</td>
+<td>任务较小，需要一天左右的工作量</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>任务非常小，需要很少的工作量，需要几个小时的工作</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>注意:这里的工作量只是完成任务本身所需的工作量，但软件开发往往不只是完成任务本身，更多时候任务还会涉及到其它相关的任务、系统。也有些任务可能涉及到团队技术的盲点，需要一定的时间研究分析等。因此，我们还需要结合任务的复杂度来进行工作量的评估。</p>
+<h4 id="1-2-任务复杂度-C"><a href="#1-2-任务复杂度-C" class="headerlink" title="1.2 任务复杂度(C)"></a>1.2 任务复杂度(C)</h4><p>关于任务复杂度，同样可以拆分出以下几个等级。</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>级别</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5</td>
+<td>极其复杂，更多依赖于其它任务、系统或子系统，含有团队中缺乏的技术，或者一些重要的经验，任务描述很不清晰，有许多未知因素，对外部任务、系统或子系统有很大的影响等</td>
+</tr>
+<tr>
+<td>4</td>
+<td>非常复杂，依赖于其它任务、系统或子系统，其中所涉及到的一些技术点、经验在团队中不是强项，任务描述不清晰，有些未知因素，需要极高的一些技术能力才能完成，对外部任务、系统或子系统有一定的影响等</td>
+</tr>
+<tr>
+<td>3</td>
+<td>中等程度复杂，有些依赖于其它任务、系统或子系统，完成任务很少或不需要研究，任务描述很清晰，未知因素基本没有，只需要一般的技术能力就可以完成，对外部任务、系统或子系统很少的影响等</td>
+</tr>
+<tr>
+<td>2</td>
+<td>简单，很少依赖于其它任务、系统或子系统，其中所涉及到的一些技术点、经验在团队中曾经有过，任务描述基本清晰，未知因素较少，只需要一般的技术能力就可以完成，对外部任务、系统或子系统基本没有影响</td>
+</tr>
+<tr>
+<td>1</td>
+<td>较简单，基本没有未知因素，所涉及的技术、经验都是团队非常熟练的。只需要基本的编程能力就可以完成，任务影响力仅涉及自身。</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h4 id="1-3-工作量-E"><a href="#1-3-工作量-E" class="headerlink" title="1.3 工作量(E)"></a>1.3 工作量(E)</h4><script type="math/tex; mode=display">
+单个任务工作量(o)=SC</script><script type="math/tex; mode=display">
+项目的总工作量(E)=\sum_{i=1}^n{(SC)}_i</script><p>这里，我们定义工作量的最小工作单位为sp，单位时间一天的工作量。1sp即：我们的标准工程师一天的工作量为1sp(即:我们的标准工程师理想中的开发速度为1sp)；</p>
+<h3 id="二、开发速度的评估"><a href="#二、开发速度的评估" class="headerlink" title="二、开发速度的评估"></a>二、开发速度的评估</h3><h4 id="2-1-理想开发速度"><a href="#2-1-理想开发速度" class="headerlink" title="2.1 理想开发速度"></a>2.1 理想开发速度</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;我们的一个标准工程师理想中的开发速度就是一天可以完成1sp的工作量。前提是标准程序员，但显然我们团队中的程序员不可能都是标准工程师。因此理想中我们的团队开发速度为:</p>
+<script type="math/tex; mode=display">
+团队理想开发速度(V_t)=标准工程师开发速度(V_s)*团队人员个数(R)</script><h4 id="2-2-开发速度的影响因子"><a href="#2-2-开发速度的影响因子" class="headerlink" title="2.2 开发速度的影响因子"></a>2.2 开发速度的影响因子</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;项目开发速度是一个很复杂的概念，很难准确的对其进行定义。考虑到不同团队成员的能力不同，则开发速度也不相同，即使是同一团队，其开发速度也不是一成不变的，会受到各种因素的影响。理想开发速度仅仅是没有受到任何阻力影响时的速度。但在项目过程中，总会遇到一些影响。其影响因素主要包括两方面。确定性因素以及突发性因素，在项目开始前，项目经理对以下两种因素预估的越准确，那么对开发时间的评估也越准确。</p>
+<p>确定性因素一般是项目客观存在的，容易在开始前预测的。关于确定性因素大致参考如下:</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>影响因子</th>
+<th>影响因子分数(以下为示例分数，具体分数可根据情况自定义i&gt;0,若稳定则为1)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>团队组成</td>
+<td>0.95</td>
+</tr>
+<tr>
+<td>开发过程</td>
+<td>1</td>
+</tr>
+<tr>
+<td>需求清晰完整度</td>
+<td>0.96</td>
+</tr>
+<tr>
+<td>技术因素</td>
+<td>0.97</td>
+</tr>
+<tr>
+<td>团队配合</td>
+<td>1.05</td>
+</tr>
+<tr>
+<td>其它因素</td>
+<td>0.98</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>团队组成:考虑到团队成员不可能为标准工程师。因此团队人员的能力是影响团队开发速度的一个很大因素。我们可以在团队中找一个接近于标准工程师的人，得到他的能力系数(SF)为1sp(一天可以完成1sp的工作量)，则以他为基准可以得到团队所有人的能力系数。则团队组成的影响因子分数(TF)计算公式为:</p>
+<script type="math/tex; mode=display">
+TF=\frac{\sum_{i=1}^N{(SF)}_i} {N}</script><p>开发过程:考虑到改进开发过程(采用敏捷，优化测试方法等)会对开发速度有影响，因此开发过程是影响因素之一。其值可大于1也可以小于1，若稳定不变则为1</p>
+<p>需求清晰完成度:需求是否足够清晰、完整也会对开发速度有影响。</p>
+<p>技术因素:若完成该项目涉及到团队中未知、不具备的技术知识也是风险之一。当然也可能为正面因素。</p>
+<p>团队配合:一个配合好的团队和配合差的团队其开发速度也是明显不同的。</p>
+<p><strong>说明:以上因素具体项目团队可自行调整。</strong></p>
+<p>确定性因素(FF)的综合影响(FR)计算公式为:</p>
+<script type="math/tex; mode=display">
+FR=\prod_{i=0}^n(FF)_i</script><p>突发性因素往往是项目开始前哪一预测的。关于突发性因素大致参考如下</p>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>突发性因素\影响因子分数</th>
+<th>高(+)</th>
+<th>中(+)</th>
+<th>低(+)</th>
+<th>稳定</th>
+<th>低(-)</th>
+<th>中(-)</th>
+<th>高(-)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>团队变化</td>
+<td>1.1</td>
+<td>1.05</td>
+<td>1.02</td>
+<td>1</td>
+<td>0.98</td>
+<td>0.95</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>需求变化</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>1</td>
+<td>0.99</td>
+<td>0.98</td>
+<td>0.97</td>
+</tr>
+<tr>
+<td>团队成员兼职</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>1</td>
+<td>0.98</td>
+<td>0.96</td>
+<td>0.94</td>
+</tr>
+<tr>
+<td>业务方失误</td>
+<td>-</td>
+<td>-</td>
+<td>-</td>
+<td>1</td>
+<td>0.97</td>
+<td>0.95</td>
+<td>0.92</td>
+</tr>
+<tr>
+<td>开发环境变化</td>
+<td>1.1</td>
+<td>1.05</td>
+<td>1.02</td>
+<td>1</td>
+<td>0.98</td>
+<td>0.95</td>
+<td>0.92</td>
+</tr>
+<tr>
+<td>临时增加减少任务</td>
+<td>1.1</td>
+<td>1.05</td>
+<td>1.02</td>
+<td>1</td>
+<td>0.97</td>
+<td>0.95</td>
+<td>0.91</td>
+</tr>
+<tr>
+<td>其它</td>
+<td>1.1</td>
+<td>1.05</td>
+<td>1.02</td>
+<td>1</td>
+<td>0.99</td>
+<td>0.97</td>
+<td>0.96</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>团队变化:团队人员离职，新增成员等</p>
+<p>需求变化:开发过程中需求的变更</p>
+<p>团队成员兼职:团队成员身兼数职，在其他团队也有工作。</p>
+<p>业务方失误:业务方提出错误的要求等</p>
+<p>开发环境变化:项目开发过程中开发环境发生变化</p>
+<p>临时增加减少任务:项目过程中临时性的新增或减少需求。</p>
+<p><strong>说明:以上因素具体项目团队可自行调整。</strong></p>
+<p>突发性因素(VF)的综合影响(DF)计算公式为:</p>
+<script type="math/tex; mode=display">
+DF=\prod_{i=0}^n(VF)_i</script><h4 id="2-3-实际开发速度"><a href="#2-3-实际开发速度" class="headerlink" title="2.3 实际开发速度"></a>2.3 实际开发速度</h4><p>&nbsp;&nbsp;&nbsp;&nbsp;实际开发速度需要在理想开发速度的基础上增加各种影响因子。其公式如下:</p>
+<script type="math/tex; mode=display">
+V=V_t^{FR\times DF}</script><p><img src="http://hunter-image.oss-cn-beijing.aliyuncs.com/18-9-17/79849907.jpg" alt></p>
+<p>如上图,由下往上分别为3-8人的开发团队开发速度与综合影响因子分数的函数图像(影响因子在0.8-1.2之间)。</p>
+<p>2.3 开发时间评估</p>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;开发时间计算公式如下:</p>
+<script type="math/tex; mode=display">
+T=\frac {E}{V}=\frac {\sum_{i=1}^n{(SC)}_i}{V_t^{FR\times DF}}(Days)</script><h3 id="三、模型举例"><a href="#三、模型举例" class="headerlink" title="三、模型举例"></a>三、模型举例</h3><p>输入:</p>
+<ul>
+<li>任务数:50</li>
+<li>团队人数:7</li>
+<li>固定性因素影响值:<ul>
+<li>团队组成  0.97  </li>
+<li>开发过程  1  </li>
+<li>需求清晰完整度  0.95  </li>
+<li>技术因素  0.96  </li>
+<li>团队配合  1.02  </li>
+<li>其它因素  0.96</li>
+</ul>
+</li>
+<li>突发性因素影响值:<ul>
+<li>团队变化   0.95</li>
+<li>需求变化   0.98 </li>
+<li>团队成员兼职  0.99  </li>
+<li>业务方失误  1 </li>
+<li>开发环境变化  1</li>
+<li>临时增加减少任务   1 </li>
+<li>其它   0.99 </li>
+</ul>
+</li>
+</ul>
+<p>输出:</p>
+<ul>
+<li><p>总工作量:  150</p>
+</li>
+<li><p>理想开发速度:  7</p>
+</li>
+<li><p>理想开发时间:  21.4天</p>
+</li>
+<li><p>固定性因素影响综合值:  0.87</p>
+</li>
+<li><p>突发性因素影响值:  0.91</p>
+</li>
+<li><p>实际开发速度: 4.65</p>
+</li>
+<li><p>实际开发时间: 32.2天</p>
+</li>
+</ul>
+<h3 id="结束语"><a href="#结束语" class="headerlink" title="结束语"></a>结束语</h3><p>&nbsp;&nbsp;&nbsp;&nbsp;以上仅个人针对我们公司项目所制定的一种工作量评估模型。其具体实用程度，使用中存在的问题等，还有待时间与大量数据的支撑。也希望道友们能提供一些宝贵的意见。你们的团队是如何进行工时与工作量的评估的。</p>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+   	<div>    
+ 
+ 
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+      <strong>本文作者：</strong>尽于生
+  </li>
+ <li class="post-copyright-author">
+      <strong>微信公众号：</strong><img src="https://hunter-image.oss-cn-beijing.aliyuncs.com/blog_ys/qrcode_for_gh_a23569606b12_258.jpg">
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="/2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/" title="软件(敏捷)开发中工作量工时评估方法">2018/效能管理/团队方法论/软件-敏捷-开发中工作量工时评估方法/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权： </strong>
+    本站文章均采用 <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/cn/" rel="external nofollow" target="_blank">CC BY-NC-SA 3.0 CN</a> 许可协议，请勿用于商业，转载注明出处！
+  </li>
+</ul>
+
+
+</div>
+    
+
+    
+       
+    
+	
+    
+      <div>
+        <div style="padding: 10px 0; margin: 20px auto; width: 90%; text-align: center;">
+  <div>坚持原创技术分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick="var qr = document.getElementById('QR'); if (qr.style.display === 'none') {qr.style.display='block';} else {qr.style.display='none'}">
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display: none;">
+
+    
+      <div id="wechat" style="display: inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.png" alt="尽于生 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display: inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="尽于生 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+
+    <footer class="post-footer">
+
+	
+      
+        <div class="post-tags">
+          
+            <a href="/tags/项目管理/" rel="tag"><i class="fa fa-tag"></i> 项目管理</a>
+          
+            <a href="/tags/敏捷开发/" rel="tag"><i class="fa fa-tag"></i> 敏捷开发</a>
+          
+            <a href="/tags/工时评估/" rel="tag"><i class="fa fa-tag"></i> 工时评估</a>
+          
+        </div>
+      
+
+      
+      
+        <div class="post-widgets">
+        
+          <div class="wp_rating">
+            <div id="wpac-rating"></div>
+          </div>
+        
+
+        
+
+        
+        </div>
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/jenkins/NET实现持续集成与自动化部署3-测试环境到生产环境策略/" rel="next" title=".NET实现持续集成与自动化部署3-测试环境到生产环境策略">
+                <i class="fa fa-chevron-left"></i> .NET实现持续集成与自动化部署3-测试环境到生产环境策略
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/技术实践/redis/Redis数据结构——链表/" rel="prev" title="Redis数据结构——链表">
+                Redis数据结构——链表 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>  
+ 
+
+          </div>
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="尽于生">
+            
+              <p class="site-author-name" itemprop="name">尽于生</p>
+              <p class="site-description motion-element" itemprop="description">时光不语，静待花开！</p>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">140</span>
+                    <span class="site-state-item-name">日志</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  <a href="/categories/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">21</span>
+                    <span class="site-state-item-name">分类</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  <a href="/tags/index.html">
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">25</span>
+                    <span class="site-state-item-name">标签</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.cnblogs.com/hunternet" title="CnBlogs &rarr; https://www.cnblogs.com/hunternet" rel="noopener" target="_blank"><i class="fa fa-fw fa-globe"></i>CnBlogs</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="mailto:458925392@qq.com" title="E-Mail &rarr; mailto:458925392@qq.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://www.jianshu.com/u/0f52042059ad" title="简书 &rarr; https://www.jianshu.com/u/0f52042059ad" rel="noopener" target="_blank"><i class="fa fa-fw fa-book"></i>简书</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#前言"><span class="nav-text">前言</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一、工作量的确定"><span class="nav-text">一、工作量的确定</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-1-任务规模-S"><span class="nav-text">1.1 任务规模(S)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-2-任务复杂度-C"><span class="nav-text">1.2 任务复杂度(C)</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#1-3-工作量-E"><span class="nav-text">1.3 工作量(E)</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#二、开发速度的评估"><span class="nav-text">二、开发速度的评估</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#2-1-理想开发速度"><span class="nav-text">2.1 理想开发速度</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-2-开发速度的影响因子"><span class="nav-text">2.2 开发速度的影响因子</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-3-实际开发速度"><span class="nav-text">2.3 实际开发速度</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#三、模型举例"><span class="nav-text">三、模型举例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#结束语"><span class="nav-text">结束语</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+<!--<iframe frameborder="no" border="0" marginwidth="0" marginheight="0" width=330 height=140 src="//music.163.com/outchain/player?type=0&id=2114262426&auto=1&height=140"></iframe>-->
+    </div>
+  </aside>
+
+
+        
+      </div>	
+	  
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2021</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">尽于生</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> 强力驱动 v3.9.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Mist</a> v6.5.0</div>
+
+
+
+
+        
+<div class="busuanzi-count">
+  <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  
+    <span class="site-uv" title="总访客量">
+      <i class="fa fa-user"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_uv"></span>
+    </span>
+  
+
+  
+    <span class="site-pv" title="总访问量">
+      <i class="fa fa-eye"></i>
+      <span class="busuanzi-value" id="busuanzi_value_site_pv"></span>
+    </span>
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+	
+    
+
+    
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    
+      
+  
+  <script type="text/javascript" color="0,0,255" opacity="0.5" zindex="-1" count="99" src="/lib/canvas-nest/canvas-nest.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=6.5.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=6.5.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=6.5.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=6.5.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=6.5.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  
+  
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick';
+    guest = guest.split(',').filter(function (item) {
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: false,
+        appId: 'WSJyY3irqFdAx9AIYf4F3uAb-gzGzoHsz',
+        appKey: 'Hk4W3rOsJ7UCz41dyiaK0Odv',
+        placeholder: 'Just go go',
+        avatar:'http://hunter-image.oss-cn-beijing.aliyuncs.com/18-11-12/59866381.jpg',
+        meta:guest,
+        pageSize:'10' || 10,
+        visitor: false
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      },
+      TeX: {equationNumbers: { autoNumber: "AMS" }}
+    });
+</script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<script type="text/javascript" src="//cdn.jsdelivr.net/npm/mathjax@2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+  
+
+
+  
+  
+  <script type="text/javascript">
+  wpac_init = window.wpac_init || [];
+  wpac_init.push({widget: 'Rating', id: 14976,
+    el: 'wpac-rating',
+    color: 'fc6423'
+  });
+  (function() {
+    if ('WIDGETPACK_LOADED' in window) return;
+    WIDGETPACK_LOADED = true;
+    var mc = document.createElement('script');
+    mc.type = 'text/javascript';
+    mc.async = true;
+    mc.src = '//embed.widgetpack.com/widget.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(mc, s.nextSibling);
+  })();
+  </script>
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+</body>
+</html>
